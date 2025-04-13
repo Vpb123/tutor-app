@@ -5,11 +5,14 @@ import androidx.lifecycle.viewModelScope
 import com.mytutor.app.data.remote.models.Enrolment
 import com.mytutor.app.data.remote.models.EnrolmentStatus
 import com.mytutor.app.data.remote.repository.EnrolmentRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class EnrolmentViewModel(
+@HiltViewModel
+class EnrolmentViewModel @Inject constructor(
     private val enrolmentRepository: EnrolmentRepository
 ) : ViewModel() {
 

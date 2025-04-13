@@ -9,11 +9,14 @@ import com.mytutor.app.data.remote.repository.LessonRepository
 import com.mytutor.app.data.remote.repository.ProgressRepository
 import com.mytutor.app.domain.usecase.CanStudentAccessLessonUseCase
 import com.mytutor.app.domain.usecase.ComputeLessonStatusUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class LessonViewModel(
+@HiltViewModel
+class LessonViewModel @Inject constructor(
     private val lessonRepository: LessonRepository,
     private val computeLessonStatusesUseCase: ComputeLessonStatusUseCase,
     private val lessonProgressRepository: ProgressRepository,

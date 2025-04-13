@@ -1,16 +1,18 @@
 package com.mytutor.app.data.remote.repository
 
-import android.net.Uri
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.mytutor.app.data.remote.models.User
-import com.mytutor.app.data.remote.FirebaseService
+import com.mytutor.app.utils.imageupload.ImageUploader
 import kotlinx.coroutines.tasks.await
+import java.io.File
 
-class UserRepository {
-
-    private val firestore = FirebaseService.firestore
-    private val storage = FirebaseService.storage
-    private val auth = FirebaseService.auth
+class UserRepository(
+    private val firestore: FirebaseFirestore,
+    private val auth: FirebaseAuth,
+    private val imageUploader: ImageUploader
+) {
 
     private val usersCollection = firestore.collection("users")
 
@@ -33,15 +35,9 @@ class UserRepository {
         }
     }
 
-    suspend fun uploadProfileImage(uid: String, imageUri: Uri): Result<String> {
-        return try {
-            val imageRef = storage.reference.child("profile_images/$uid.jpg")
-            imageRef.putFile(imageUri).await()
-            val downloadUrl = imageRef.downloadUrl.await().toString()
-            Result.success(downloadUrl)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+    // ✅ Upload profile image to ImageKit
+    suspend fun uploadProfileImage(uid: String, imageFile: File): Result<String> {
+        return imageUploader.uploadFile(imageFile,"profile")
     }
 
     suspend fun updateProfileImageUrl(uid: String, imageUrl: String): Result<Unit> {
@@ -61,5 +57,4 @@ class UserRepository {
             Result.failure(e)
         }
     }
-
 }

@@ -3,16 +3,21 @@ package com.mytutor.app.presentation.user
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import android.content.Context
 import com.mytutor.app.data.remote.models.User
 import com.mytutor.app.data.remote.models.UserRole
 import com.mytutor.app.data.remote.repository.AuthRepository
 import com.mytutor.app.data.remote.repository.UserRepository
+import com.mytutor.app.utils.FileUtils
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import javax.inject.Inject
 
-class UserViewModel(
+@HiltViewModel
+class UserViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val userRepository: UserRepository
 ) : ViewModel() {
@@ -52,11 +57,13 @@ class UserViewModel(
         }
     }
 
-    fun uploadAndSetProfileImage(imageUri: Uri) {
+    fun uploadAndSetProfileImage(imageUri: Uri, context: Context) {
         val uid = _user.value?.uid ?: return
         _isLoading.value = true
+
         viewModelScope.launch {
-            val uploadResult = userRepository.uploadProfileImage(uid, imageUri)
+            val imageFile = FileUtils.uriToFile(imageUri, context)
+            val uploadResult = userRepository.uploadProfileImage(uid, imageFile)
             uploadResult.fold(
                 onSuccess = { imageUrl ->
                     userRepository.updateProfileImageUrl(uid, imageUrl)
@@ -67,6 +74,7 @@ class UserViewModel(
             _isLoading.value = false
         }
     }
+
 
     fun getUserRole(): UserRole? = _user.value?.role
 

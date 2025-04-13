@@ -5,14 +5,17 @@ import androidx.lifecycle.viewModelScope
 import com.mytutor.app.data.remote.models.Course
 import com.mytutor.app.data.remote.repository.CourseRepository
 import com.mytutor.app.data.remote.repository.EnrolmentRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class CourseViewModel(
+@HiltViewModel
+class CourseViewModel @Inject constructor(
     private val courseRepository: CourseRepository,
     private val enrolmentRepository: EnrolmentRepository
-) : ViewModel() {
+) : ViewModel(){
 
     private val _allCourses = MutableStateFlow<List<Course>>(emptyList())
     val allCourses: StateFlow<List<Course>> = _allCourses

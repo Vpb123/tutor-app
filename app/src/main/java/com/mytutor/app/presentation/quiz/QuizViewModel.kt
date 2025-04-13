@@ -8,11 +8,14 @@ import com.mytutor.app.data.remote.models.QuizResult
 import com.mytutor.app.data.remote.repository.QuizRepository
 import com.mytutor.app.data.remote.repository.QuizResultRepository
 import com.mytutor.app.domain.usecase.SubmitQuizUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class QuizViewModel(
+@HiltViewModel
+class QuizViewModel @Inject constructor(
     private val quizRepository: QuizRepository,
     private val quizResultRepository: QuizResultRepository,
     private val submitQuizUseCase: SubmitQuizUseCase
