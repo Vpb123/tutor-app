@@ -1,9 +1,12 @@
 package com.mytutor.app.ui.screens.auth.components
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Wallpapers
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -14,6 +17,7 @@ import com.mytutor.app.presentation.auth.AuthViewModel
 import com.mytutor.app.ui.components.AuthTextField
 import com.mytutor.app.ui.components.PrimaryButton
 import androidx.hilt.navigation.compose.hiltViewModel
+
 
 @Composable
 fun LoginForm(

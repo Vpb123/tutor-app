@@ -1,8 +1,10 @@
 package com.mytutor.app.utils.imageupload
 
+import com.mytutor.app.utils.imageupload.ImageKitAuthGenerator.generateBasicAuthHeader
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.File
@@ -19,17 +21,23 @@ class ImageUploader(
             .create(ImageKitApi::class.java)
     }
 
-    suspend fun uploadFile(file: File, folder: String = "general"): Result<String> {
+    suspend fun uploadFile(file: File, folder: String): Result<String> {
         return try {
             val mimeType = getMimeType(file)
             val requestFile = file.asRequestBody(mimeType.toMediaTypeOrNull())
             val multipartBody = MultipartBody.Part.createFormData("file", file.name, requestFile)
 
+            val authHeader = generateBasicAuthHeader()
+            val fileNameBody = file.name.toRequestBody("text/plain".toMediaTypeOrNull())
+            val publicKeyBody = config.publicKey.toRequestBody("text/plain".toMediaTypeOrNull())
+            val folderBody = folder.toRequestBody("text/plain".toMediaTypeOrNull())
+
             val response = api.uploadFile(
+                authHeader = authHeader,
                 file = multipartBody,
-                fileName = file.name,
-                publicKey = config.publicKey,
-                folder = folder
+                fileName = fileNameBody,
+                publicKey = publicKeyBody,
+                folder = folderBody
             )
 
             if (response.isSuccessful) {

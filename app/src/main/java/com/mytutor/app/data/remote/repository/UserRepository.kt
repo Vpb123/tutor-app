@@ -35,9 +35,8 @@ class UserRepository(
         }
     }
 
-    // ✅ Upload profile image to ImageKit
     suspend fun uploadProfileImage(uid: String, imageFile: File): Result<String> {
-        return imageUploader.uploadFile(imageFile,"profile")
+        return imageUploader.uploadFile(imageFile,"profile/")
     }
 
     suspend fun updateProfileImageUrl(uid: String, imageUrl: String): Result<Unit> {

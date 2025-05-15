@@ -135,13 +135,10 @@ object AppModule {
     @Provides
     @Singleton
     fun provideImageKitConfig(@ApplicationContext context: Context): ImageKitConfig {
-        val properties = Properties().apply {
-            context.assets.open("local.properties").use { load(it) }
-        }
 
         return ImageKitConfig(
-            publicKey = properties.getProperty("imagekit.public_key") ?: throw IllegalStateException("Missing ImageKit public key"),
-            endpoint = properties.getProperty("imagekit.endpoint") ?: throw IllegalStateException("Missing ImageKit endpoint")
+            publicKey="public_oV+15UMXlxUG/2lbTfiBczJqdOM=",
+            endpoint = "https://upload.imagekit.io/api/v1/"
         )
     }
 

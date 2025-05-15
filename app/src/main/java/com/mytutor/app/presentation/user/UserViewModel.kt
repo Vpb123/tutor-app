@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import android.content.Context
+import android.util.Log
 import com.mytutor.app.data.remote.models.User
 import com.mytutor.app.data.remote.models.UserRole
 import com.mytutor.app.data.remote.repository.AuthRepository
@@ -60,7 +61,7 @@ class UserViewModel @Inject constructor(
     fun uploadAndSetProfileImage(imageUri: Uri, context: Context) {
         val uid = _user.value?.uid ?: return
         _isLoading.value = true
-
+        Log.d("UserViewModel", "uploadAndSetProfileImage called with URI: $imageUri")
         viewModelScope.launch {
             val imageFile = FileUtils.uriToFile(imageUri, context)
             val uploadResult = userRepository.uploadProfileImage(uid, imageFile)
@@ -69,7 +70,9 @@ class UserViewModel @Inject constructor(
                     userRepository.updateProfileImageUrl(uid, imageUrl)
                     _user.value = _user.value?.copy(profileImageUrl = imageUrl)
                 },
-                onFailure = { _error.value = it.message }
+                onFailure = {
+                    _error.value = it.message
+                    Log.e("UserViewModel", "Upload failed: ${it.message}")}
             )
             _isLoading.value = false
         }

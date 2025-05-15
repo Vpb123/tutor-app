@@ -79,14 +79,14 @@ class CourseViewModel @Inject constructor(
         }
     }
 
-    fun createCourse(course: Course, onSuccess: () -> Unit) {
+    fun createCourse(course: Course, onSuccess: (String) -> Unit) {
         _loading.value = true
         viewModelScope.launch {
             val result = courseRepository.createCourse(course)
             result.fold(
-                onSuccess = {
+                onSuccess = { id ->
                     loadCoursesByTutor(course.tutorId)
-                    onSuccess()
+                    onSuccess(id)
                 },
                 onFailure = { _error.value = it.message }
             )
@@ -106,6 +106,31 @@ class CourseViewModel @Inject constructor(
                 onFailure = { _error.value = it.message }
             )
             _loading.value = false
+        }
+    }
+
+    fun deleteCourse(courseId: String, tutorId: String) {
+        _loading.value = true
+        viewModelScope.launch {
+            val result = courseRepository.deleteCourse(courseId)
+            result.fold(
+                onSuccess = { loadCoursesByTutor(tutorId) },
+                onFailure = { _error.value = it.message }
+            )
+            _loading.value = false
+        }
+    }
+
+    fun getCourseById(courseId: String, onResult: (Course?) -> Unit) {
+        viewModelScope.launch {
+            val result = courseRepository.getCourseById(courseId)
+            result.fold(
+                onSuccess = { onResult(it) },
+                onFailure = {
+                    _error.value = it.message
+                    onResult(null)
+                }
+            )
         }
     }
 }

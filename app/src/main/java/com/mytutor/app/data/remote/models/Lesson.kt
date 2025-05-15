@@ -7,7 +7,7 @@ data class Lesson(
     val id: String = "",
     val courseId: String = "",
     val title: String = "",
-    val materials: List<LearningMaterial> = emptyList(),
+    val pages: List<LessonPage> = emptyList(),
     val order: Int = 0,
     val createdAt: Long = System.currentTimeMillis()
 )

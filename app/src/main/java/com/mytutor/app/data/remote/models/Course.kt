@@ -11,5 +11,6 @@ data class Course(
     val tutorId: String = "",
     val lessonCount: Int = 0,
     val durationInHours: Int = 0,
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    val isPublished: Boolean = false
 )

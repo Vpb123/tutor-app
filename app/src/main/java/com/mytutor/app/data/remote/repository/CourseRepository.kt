@@ -11,7 +11,7 @@ class CourseRepository {
     private val firestore = FirebaseService.firestore
     private val coursesCollection = firestore.collection("courses")
 
-    suspend fun createCourse(course: Course): Result<Unit> {
+    suspend fun createCourse(course: Course): Result<String> {
         return try {
             val docRef = if (course.id.isBlank()) {
                 coursesCollection.document() // Auto-generate ID
@@ -20,7 +20,7 @@ class CourseRepository {
             }
             val courseWithId = course.copy(id = docRef.id)
             docRef.set(courseWithId).await()
-            Result.success(Unit)
+            Result.success(courseWithId.id)
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -103,6 +103,15 @@ class CourseRepository {
                 .document(course.id)
                 .set(course)
                 .await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun deleteCourse(courseId: String): Result<Unit> {
+        return try {
+            firestore.collection("courses").document(courseId).delete().await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

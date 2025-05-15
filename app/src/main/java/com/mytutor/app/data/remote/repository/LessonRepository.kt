@@ -10,7 +10,7 @@ class LessonRepository {
     private val firestore = FirebaseService.firestore
     private val lessonsCollection = firestore.collection("lessons")
 
-    suspend fun createLesson(lesson: Lesson): Result<Unit> {
+    suspend fun createLesson(lesson: Lesson): Result<Lesson> {
         return try {
             val docRef = if (lesson.id.isBlank()) {
                 lessonsCollection.document()
@@ -20,7 +20,7 @@ class LessonRepository {
 
             val lessonWithId = lesson.copy(id = docRef.id)
             docRef.set(lessonWithId).await()
-            Result.success(Unit)
+            Result.success(lessonWithId)
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -60,4 +60,14 @@ class LessonRepository {
             Result.failure(e)
         }
     }
+
+    suspend fun deleteLesson(lessonId: String): Result<Unit> {
+        return try {
+            lessonsCollection.document(lessonId).delete().await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
 }

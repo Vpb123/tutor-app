@@ -25,19 +25,44 @@ private val DarkColorScheme = darkColorScheme(
 private val LightColorScheme = lightColorScheme(
     primary = PrimaryColor,
     onPrimary = OnPrimaryColor,
+
+    primaryContainer = PrimaryContainer,
+    onPrimaryContainer = OnPrimaryContainer,
+
     secondary = SecondaryColor,
+    onSecondary = OnSecondaryColor,
+
+    secondaryContainer = SecondaryContainer,
+    onSecondaryContainer = OnSecondaryContainer,
+
     background = BackgroundColor,
-    surface = SurfaceColor,
     onBackground = OnBackgroundColor,
+
+    surface = SurfaceColor,
+    onSurface = OnSurfaceColor,
+
+    surfaceVariant = SurfaceVariant,
+    onSurfaceVariant = OnSurfaceVariant,
+
+    outline = Outline,
+    outlineVariant = OutlineVariant,
+
+    inverseSurface = InverseSurface,
+    inverseOnSurface = InverseOnSurface,
+
     error = ErrorColor,
-    onError = OnErrorColor
+    onError = OnErrorColor,
+
+    tertiary = TertiaryColor,
+    onTertiary = OnTertiaryColor
 )
+
 
 
 @Composable
 fun TutorAppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
+
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {

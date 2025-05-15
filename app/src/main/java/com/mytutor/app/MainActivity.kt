@@ -12,10 +12,10 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.mytutor.app.ui.screens.auth.AuthScreen
-import com.mytutor.app.ui.screens.tutor.TutorDashboardScreen
-import com.mytutor.app.ui.screens.student.CourseListScreen
+import com.mytutor.app.presentation.root.TutorRootScreen
 import com.mytutor.app.ui.screens.SplashScreen
+import com.mytutor.app.ui.screens.auth.AuthScreen
+import com.mytutor.app.ui.screens.student.CourseListScreen
 import com.mytutor.app.ui.theme.TutorAppTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -53,7 +53,7 @@ fun AppNavigation() {
             CourseListScreen(navController = navController)
         }
         composable("tutorDashboard") {
-            TutorDashboardScreen(navController = navController)
+           TutorRootScreen()
         }
     }
 }

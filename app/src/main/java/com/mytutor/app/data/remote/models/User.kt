@@ -12,6 +12,9 @@ data class User(
     val profileImageUrl: String = "",
     val role: UserRole = UserRole.STUDENT,
 
+    val specialization: String? = "",
+    val experienceYears: Int? = 0,
+
     @Exclude
     val isLoggedIn: Boolean = false
 )
