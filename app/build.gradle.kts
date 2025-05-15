@@ -65,6 +65,7 @@ dependencies {
     implementation(libs.converter.gson)
     implementation(libs.okhttp)
     implementation(libs.coil.compose)
+    implementation(libs.coil.svg)
     implementation(libs.androidx.material.icons.extended)
     kapt(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)

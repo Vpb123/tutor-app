@@ -35,6 +35,7 @@ fun TutorProfileScreen(
     onLogout: () -> Unit,
     viewModel: UserViewModel = hiltViewModel(),
     authViewModel: AuthViewModel = hiltViewModel(),
+
 ) {
     val context = LocalContext.current
     val user by viewModel.user.collectAsState()

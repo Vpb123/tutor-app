@@ -1,10 +1,18 @@
 package com.mytutor.app.presentation.course
 
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.remember
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mytutor.app.data.remote.models.Course
+import com.mytutor.app.data.remote.models.Enrolment
+import com.mytutor.app.data.remote.models.EnrolmentStatus
+import com.mytutor.app.data.remote.models.Lesson
 import com.mytutor.app.data.remote.repository.CourseRepository
 import com.mytutor.app.data.remote.repository.EnrolmentRepository
+import com.mytutor.app.data.remote.repository.LessonRepository
+import com.mytutor.app.data.remote.repository.ProgressRepository
+import com.mytutor.app.data.remote.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,12 +22,21 @@ import javax.inject.Inject
 @HiltViewModel
 class CourseViewModel @Inject constructor(
     private val courseRepository: CourseRepository,
-    private val enrolmentRepository: EnrolmentRepository
+    private val enrolmentRepository: EnrolmentRepository,
+    private val userRepository: UserRepository,
+    private val lessonRepository: LessonRepository,
+    private val progressRepository: ProgressRepository,
 ) : ViewModel(){
 
     private val _allCourses = MutableStateFlow<List<Course>>(emptyList())
     val allCourses: StateFlow<List<Course>> = _allCourses
+    val tutorNames = mutableStateMapOf<String, String>()
+    val lessonCounts = mutableStateMapOf<String, Int>()
+    val pendingEnrolments = MutableStateFlow<List<Enrolment>>(emptyList())
+    val acceptedEnrolments = MutableStateFlow<List<Enrolment>>(emptyList())
 
+    val courseProgress = mutableStateMapOf<String, Float>()
+    val currentLesson = mutableStateMapOf<String, Lesson?>()
     private val _myCourses = MutableStateFlow<List<Course>>(emptyList())
     val myCourses: StateFlow<List<Course>> = _myCourses
 
@@ -34,12 +51,34 @@ class CourseViewModel @Inject constructor(
         viewModelScope.launch {
             val result = courseRepository.getAllCourses()
             result.fold(
-                onSuccess = { _allCourses.value = it },
+                onSuccess = { courses ->
+                    _allCourses.value = courses
+
+                    courses.forEach { course ->
+
+                        if (!tutorNames.containsKey(course.tutorId)) {
+                            viewModelScope.launch {
+                                userRepository.getUserById(course.tutorId).getOrNull()?.let {
+                                    tutorNames[course.tutorId] = it.displayName
+                                }
+                            }
+                        }
+
+                        if (!lessonCounts.containsKey(course.id)) {
+                            viewModelScope.launch {
+                                lessonRepository.getLessonsByCourse(course.id).getOrNull()?.let {
+                                    lessonCounts[course.id] = it.size
+                                }
+                            }
+                        }
+                    }
+                },
                 onFailure = { _error.value = it.message }
             )
             _loading.value = false
         }
     }
+
 
     fun loadMyCourses(studentId: String) {
         _loading.value = true
@@ -133,4 +172,48 @@ class CourseViewModel @Inject constructor(
             )
         }
     }
+
+    fun loadStudentEnrolmentsAndProgress(studentId: String) {
+        _loading.value = true
+        viewModelScope.launch {
+            val result = enrolmentRepository.getEnrolmentsByStudent(studentId)
+            result.fold(
+                onSuccess = { enrolments ->
+                    val accepted = enrolments.filter { it.status == EnrolmentStatus.ACCEPTED }
+                    val pending = enrolments.filter { it.status == EnrolmentStatus.PENDING }
+
+                    acceptedEnrolments.value = accepted
+                    pendingEnrolments.value = pending
+
+                    // Fetch accepted course metadata
+                    accepted.forEach { enrolment ->
+                        val courseId = enrolment.courseId
+
+                        if (!tutorNames.containsKey(enrolment.courseId)) {
+                            launch {
+                                userRepository.getUserById(enrolment.courseId).getOrNull()?.let {
+                                    tutorNames[enrolment.courseId] = it.displayName
+                                }
+                            }
+                        }
+
+                        launch {
+                            val lessons = lessonRepository.getLessonsByCourse(courseId).getOrNull().orEmpty()
+                            val progress = progressRepository.getCompletedLessons(courseId, studentId).getOrNull().orEmpty()
+
+                            lessonCounts[courseId] = lessons.size
+                            courseProgress[courseId] = progressRepository.getCourseProgressPercent(lessons, progress)
+                            currentLesson[courseId] = lessons.firstOrNull { lesson ->
+                                progress.none { it.lessonId == lesson.id }
+                            }
+                        }
+                    }
+                },
+                onFailure = { _error.value = it.message }
+            )
+            _loading.value = false
+        }
+    }
+
+
 }

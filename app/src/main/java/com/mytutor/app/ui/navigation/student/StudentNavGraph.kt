@@ -1,5 +1,7 @@
 package com.mytutor.app.ui.navigation.student
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
@@ -11,8 +13,10 @@ import androidx.navigation.navArgument
 import com.mytutor.app.presentation.course.CourseViewModel
 import com.mytutor.app.presentation.lesson.LessonViewModel
 import com.mytutor.app.ui.screens.student.AllCoursesScreen
+import com.mytutor.app.ui.screens.student.MyCoursesScreen
 
 
+@RequiresApi(Build.VERSION_CODES.P)
 @Composable
 fun StudentNavGraph(
     navController: NavHostController,
@@ -26,17 +30,17 @@ fun StudentNavGraph(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.P)
 fun NavGraphBuilder.studentNavGraph(
     navController: NavHostController,
     courseViewModel: CourseViewModel,
     lessonViewModel: LessonViewModel
 ) {
-    // Bottom Nav Screens
     composable(StudentBottomNavItem.AllCourses.route) {
         AllCoursesScreen(navController, courseViewModel)
     }
     composable(StudentBottomNavItem.MyCourses.route) {
-//        MyCoursesScreen(navController, courseViewModel)
+        MyCoursesScreen(navController)
     }
     composable(StudentBottomNavItem.Profile.route) {
 //        StudentProfileScreen(navController)
