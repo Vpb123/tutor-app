@@ -26,12 +26,15 @@ import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import com.mytutor.app.presentation.user.UserViewModel
 import com.mytutor.app.ui.theme.Typography
+import com.mytutor.app.presentation.auth.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TutorProfileScreen(
     navController: NavHostController,
-    viewModel: UserViewModel = hiltViewModel()
+    onLogout: () -> Unit,
+    viewModel: UserViewModel = hiltViewModel(),
+    authViewModel: AuthViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
     val user by viewModel.user.collectAsState()
@@ -209,24 +212,48 @@ fun TutorProfileScreen(
                 Text("Tutor Profile", style = Typography.titleLarge)
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Text(user?.displayName ?: "", style = Typography.headlineSmall)
-                Text(user?.email ?: "", style = Typography.bodyMedium)
-                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = user?.displayName ?: "",
+                    style = Typography.headlineMedium
+                )
+                Text(
+                    text = user?.email ?: "",
+                    style = Typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(24.dp))
 
-                Column(
+                Card(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    colors = CardDefaults.elevatedCardColors()
                 ) {
-                    Text("Specialization: ${user?.specialization ?: "-"}", style = Typography.bodyLarge)
-                    Text("Experience: ${user?.experienceYears ?: 0} years", style = Typography.bodyLarge)
-                    Text("Bio:\n${user?.bio ?: "-"}", style = Typography.bodyLarge)
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        ProfileDetailRow(label = "Specialization", value = user?.specialization ?: "-")
+                        ProfileDetailRow(label = "Experience", value = "${user?.experienceYears ?: 0} years")
+                        ProfileDetailRow(label = "Bio", value = user?.bio ?: "-")
+                    }
                 }
-
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Button(onClick = { isEditing = true }) {
                     Text("Edit Profile")
                 }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Button(
+                    onClick = {
+                        authViewModel.logout()
+                        onLogout()
+                              },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Logout", color = MaterialTheme.colorScheme.onError)
+                }
+
             }
         }
 
@@ -235,6 +262,14 @@ fun TutorProfileScreen(
                 CircularProgressIndicator()
             }
         }
+    }
+}
+
+@Composable
+fun ProfileDetailRow(label: String, value: String) {
+    Column {
+        Text(text = label, style = Typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+        Text(text = value, style = Typography.bodyLarge)
     }
 }
 

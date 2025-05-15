@@ -8,26 +8,30 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.mytutor.app.ui.navigation.tutor.TutorBottomNavBar
-import com.mytutor.app.ui.navigation.tutor.TutorBottomNavItem
-import com.mytutor.app.ui.navigation.tutor.TutorNavGraph
+import com.mytutor.app.ui.navigation.student.StudentBottomNavBar
+import com.mytutor.app.ui.navigation.student.StudentBottomNavItem
+import com.mytutor.app.ui.navigation.student.StudentNavGraph
 
 @Composable
-fun TutorRootScreen(onLogout: () -> Unit) {
+fun StudentRootScreen() {
     val navController = rememberNavController()
     val navBackStackEntry = navController.currentBackStackEntryAsState().value
     val currentRoute = navBackStackEntry?.destination?.route
-    val showBottomBar = TutorBottomNavItem.all.any { currentRoute?.startsWith(it.route) == true }
+
+    val showBottomBar = StudentBottomNavItem.all.any { currentRoute?.startsWith(it.route) == true }
 
     Scaffold(
         bottomBar = {
             if (showBottomBar) {
-                TutorBottomNavBar(navController)
+                StudentBottomNavBar(navController)
             }
         }
     ) { innerPadding ->
-        Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-            TutorNavGraph(navController = navController, onLogout = onLogout)
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding)
+        ) {
+            StudentNavGraph(navController = navController)
         }
     }
 }

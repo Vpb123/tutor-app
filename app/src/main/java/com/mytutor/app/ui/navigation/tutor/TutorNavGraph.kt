@@ -30,14 +30,14 @@ import com.mytutor.app.ui.screens.tutor.TutorDashboardScreen
 import com.mytutor.app.ui.screens.tutor.TutorProfileScreen
 
 @Composable
-fun TutorNavGraph(navController: NavHostController, startDestination: String = TutorBottomNavItem.Dashboard.route) {
+fun TutorNavGraph(navController: NavHostController, startDestination: String = TutorBottomNavItem.Dashboard.route, onLogout: () -> Unit) {
     val lessonViewModel: LessonViewModel = hiltViewModel()
     NavHost(navController = navController, startDestination = startDestination) {
-        tutorNavGraph(navController, lessonViewModel)
+        tutorNavGraph(navController, lessonViewModel, onLogout)
     }
 }
 
-fun NavGraphBuilder.tutorNavGraph(navController: NavHostController, lessonViewModel: LessonViewModel) {
+fun NavGraphBuilder.tutorNavGraph(navController: NavHostController, lessonViewModel: LessonViewModel,  onLogout: () -> Unit) {
     composable(TutorBottomNavItem.Dashboard.route) {
         TutorDashboardScreen(navController)
     }
@@ -53,7 +53,7 @@ fun NavGraphBuilder.tutorNavGraph(navController: NavHostController, lessonViewMo
     }
 
     composable(TutorBottomNavItem.Profile.route) {
-        TutorProfileScreen(navController)
+        TutorProfileScreen(navController, onLogout)
     }
 
     composable(
