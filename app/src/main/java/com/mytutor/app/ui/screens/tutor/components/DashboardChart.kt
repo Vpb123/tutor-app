@@ -34,11 +34,10 @@ fun DashboardChart(
     Column(
         modifier = modifier
             .fillMaxWidth()
-//            .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         Text(
-            text = "📊 Enrolled Students per Course",
+            text = "Enrolled Students per Course",
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(bottom = 12.dp)
         )

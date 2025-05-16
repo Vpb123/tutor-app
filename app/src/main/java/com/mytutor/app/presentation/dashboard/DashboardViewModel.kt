@@ -70,7 +70,9 @@ class DashboardViewModel @Inject constructor(
                             enrolmentId = enrolment.id,
                             studentName = studentName,
                             courseTitle = courseTitle,
-                            requestedAt = enrolment.requestedAt
+                            requestedAt = enrolment.requestedAt,
+                            courseId = enrolment.courseId,
+                            studentId = enrolment.studentId
                         )
                     }
                 }

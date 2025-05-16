@@ -27,7 +27,7 @@ class LessonViewModel @Inject constructor(
     private val computeLessonStatusesUseCase: ComputeLessonStatusUseCase,
     private val lessonProgressRepository: ProgressRepository,
     private val canStudentAccessLessonUseCase: CanStudentAccessLessonUseCase,
-    private val uploader: ImageUploader
+    internal val uploader: ImageUploader
 ) : ViewModel() {
 
     private val _lessons = MutableStateFlow<List<Lesson>>(emptyList())

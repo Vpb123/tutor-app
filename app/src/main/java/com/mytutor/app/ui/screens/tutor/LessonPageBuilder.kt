@@ -38,6 +38,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -51,6 +52,8 @@ import com.mytutor.app.data.remote.models.LearningMaterial
 import com.mytutor.app.data.remote.models.LessonPage
 import com.mytutor.app.presentation.lesson.LessonViewModel
 import com.mytutor.app.ui.components.MaterialInputDialog
+import com.mytutor.app.utils.FileUtils
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -67,7 +70,7 @@ fun LessonPageBuilderScreen(
     var showAddedIcon by remember { mutableStateOf(false) }
     var contentBlocks by remember { mutableStateOf<MutableList<ContentBlockData>>(mutableListOf()) }
     val isTextBlockAdded = contentBlocks.any { it.type == "text" }
-
+    val scope = rememberCoroutineScope()
     var embeddedMaterials by remember {
         mutableStateOf<MutableList<LearningMaterial>>(existingPage?.embeddedMaterials?.toMutableList() ?: mutableListOf())
     }
@@ -82,13 +85,29 @@ fun LessonPageBuilderScreen(
             .mapNotNull { it.imageUrl?.toUri() }
     }
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
-        if (true) {
-            imageUris = uris
-            uris.forEach { uri ->
-                contentBlocks.add(ContentBlockData(type = "image", imageUrl = uri.toString()))
+        if (uris.isNotEmpty()) {
+            scope.launch {
+                uris.forEach { uri ->
+                    val file = try {
+                        FileUtils.uriToFile(uri, context)
+                    } catch (e: Exception) {
+                        println("Failed to convert URI to File: ${e.message}")
+                        null
+                    }
+
+                    file?.let {
+                        viewModel.uploader.uploadFile(it, "lesson_images").onSuccess { imageUrl ->
+                            contentBlocks.add(ContentBlockData(type = "image", imageUrl = imageUrl))
+                            imageUris = imageUris + uri
+                        }.onFailure {
+                            println("Image upload failed: ${it.message}")
+                        }
+                    }
+                }
             }
         }
     }
+
     Scaffold(
         topBar = {
             TopAppBar(

@@ -26,8 +26,8 @@ import com.mytutor.app.presentation.dashboard.EnrolmentRequestUiModel
 @Composable
 fun PendingRequestsSection(
     requests: List<EnrolmentRequestUiModel>,
-    onAccept: (String) -> Unit,
-    onReject: (String) -> Unit
+    onAccept: (EnrolmentRequestUiModel ) -> Unit,
+    onReject: (EnrolmentRequestUiModel) -> Unit
 ) {
     Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
         Text(

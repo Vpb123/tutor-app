@@ -32,6 +32,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.mytutor.app.data.remote.models.CourseAnalytics
+import com.mytutor.app.presentation.course.EnrolmentViewModel
 import com.mytutor.app.presentation.dashboard.DashboardViewModel
 import com.mytutor.app.presentation.user.UserViewModel
 import com.mytutor.app.ui.screens.tutor.components.CourseSummaryCard
@@ -47,7 +48,8 @@ import com.mytutor.app.ui.theme.TutorAppTheme
 fun TutorDashboardScreen(
     navController: NavController,
     dashboardViewModel: DashboardViewModel = hiltViewModel(),
-    userViewModel: UserViewModel = hiltViewModel()
+    userViewModel: UserViewModel = hiltViewModel(),
+    enrolmentViewModel: EnrolmentViewModel = hiltViewModel()
 ) {
     val user by userViewModel.user.collectAsState()
     val loading by dashboardViewModel.loading.collectAsState()
@@ -91,8 +93,18 @@ fun TutorDashboardScreen(
                     item {
                         PendingRequestsSection(
                             requests = pendingRequests,
-                            onAccept = {},
-                            onReject = {}
+                            onAccept = { request ->
+                                enrolmentViewModel.acceptEnrolment(
+                                    courseId = request.courseId,
+                                    studentId = request.studentId
+                                )
+                            },
+                            onReject = { request ->
+                                enrolmentViewModel.rejectEnrolment(
+                                    courseId = request.courseId,
+                                    studentId = request.studentId
+                                )
+                            }
                         )
                     }
                     item {

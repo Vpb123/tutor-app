@@ -5,14 +5,19 @@ import androidx.compose.runtime.remember
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mytutor.app.data.remote.models.Course
+import com.mytutor.app.data.remote.models.CourseCompletionStatus
 import com.mytutor.app.data.remote.models.Enrolment
 import com.mytutor.app.data.remote.models.EnrolmentStatus
 import com.mytutor.app.data.remote.models.Lesson
+import com.mytutor.app.data.remote.models.LessonProgress
 import com.mytutor.app.data.remote.repository.CourseRepository
 import com.mytutor.app.data.remote.repository.EnrolmentRepository
 import com.mytutor.app.data.remote.repository.LessonRepository
 import com.mytutor.app.data.remote.repository.ProgressRepository
+import com.mytutor.app.data.remote.repository.QuizResultRepository
 import com.mytutor.app.data.remote.repository.UserRepository
+import com.mytutor.app.domain.usecase.GetCourseCompletionStatusUseCase
+import com.mytutor.app.presentation.dashboard.EnrolmentRequestUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,14 +31,15 @@ class CourseViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val lessonRepository: LessonRepository,
     private val progressRepository: ProgressRepository,
+    private val quizResultRepository: QuizResultRepository
 ) : ViewModel(){
 
     private val _allCourses = MutableStateFlow<List<Course>>(emptyList())
     val allCourses: StateFlow<List<Course>> = _allCourses
     val tutorNames = mutableStateMapOf<String, String>()
     val lessonCounts = mutableStateMapOf<String, Int>()
-    val pendingEnrolments = MutableStateFlow<List<Enrolment>>(emptyList())
-    val acceptedEnrolments = MutableStateFlow<List<Enrolment>>(emptyList())
+    val pendingEnrolments= MutableStateFlow<List<EnrolmentRequestUiModel>>(emptyList())
+    val acceptedEnrolments = MutableStateFlow<List<EnrolmentRequestUiModel>>(emptyList())
 
     val courseProgress = mutableStateMapOf<String, Float>()
     val currentLesson = mutableStateMapOf<String, Lesson?>()
@@ -109,7 +115,7 @@ class CourseViewModel @Inject constructor(
     fun requestEnrolment(studentId: String, courseId: String) {
         _loading.value = true
         viewModelScope.launch {
-            val result = enrolmentRepository.requestEnrolment(studentId, courseId)
+            val result = enrolmentRepository.requestEnrolment(courseId, studentId)
             result.fold(
                 onSuccess = { loadMyCourses(studentId) },
                 onFailure = { _error.value = it.message }
@@ -179,39 +185,91 @@ class CourseViewModel @Inject constructor(
             val result = enrolmentRepository.getEnrolmentsByStudent(studentId)
             result.fold(
                 onSuccess = { enrolments ->
-                    val accepted = enrolments.filter { it.status == EnrolmentStatus.ACCEPTED }
-                    val pending = enrolments.filter { it.status == EnrolmentStatus.PENDING }
 
-                    acceptedEnrolments.value = accepted
-                    pendingEnrolments.value = pending
+                    val acceptedUiList = mutableListOf<EnrolmentRequestUiModel>()
+                    val pendingUiList = mutableListOf<EnrolmentRequestUiModel>()
 
-                    // Fetch accepted course metadata
-                    accepted.forEach { enrolment ->
-                        val courseId = enrolment.courseId
-
-                        if (!tutorNames.containsKey(enrolment.courseId)) {
-                            launch {
-                                userRepository.getUserById(enrolment.courseId).getOrNull()?.let {
-                                    tutorNames[enrolment.courseId] = it.displayName
+                    enrolments.forEach { enrolment ->
+                        val course = courseRepository.getCourseById(enrolment.courseId).getOrNull()
+                        if (course != null) {
+                            val cachedTutorName = tutorNames[course.tutorId]
+                            if (cachedTutorName == null) {
+                                launch {
+                                    userRepository.getUserById(course.tutorId).getOrNull()?.let {
+                                        tutorNames[course.tutorId] = it.displayName
+                                    }
                                 }
                             }
-                        }
+                            val tutorName = cachedTutorName ?: "Tutor"
 
-                        launch {
-                            val lessons = lessonRepository.getLessonsByCourse(courseId).getOrNull().orEmpty()
-                            val progress = progressRepository.getCompletedLessons(courseId, studentId).getOrNull().orEmpty()
+                            val uiModel = EnrolmentRequestUiModel(
+                                enrolmentId = enrolment.id,
+                                studentName = "",
+                                courseTitle = course.title,
+                                requestedAt = enrolment.requestedAt,
+                                courseId = course.id,
+                                studentId = enrolment.studentId,
+                                tutorName = tutorName,
+                                status = enrolment.status,
+                                description = course.description,
+                                subject = course.subject?.name
+                            )
 
-                            lessonCounts[courseId] = lessons.size
-                            courseProgress[courseId] = progressRepository.getCourseProgressPercent(lessons, progress)
-                            currentLesson[courseId] = lessons.firstOrNull { lesson ->
-                                progress.none { it.lessonId == lesson.id }
+                            if (enrolment.status == EnrolmentStatus.ACCEPTED) {
+                                acceptedUiList += uiModel
+
+                                launch {
+                                    val lessons = lessonRepository.getLessonsByCourse(course.id).getOrNull().orEmpty()
+                                    val progress = progressRepository.getCompletedLessons(course.id, studentId).getOrNull().orEmpty()
+
+                                    lessonCounts[course.id] = lessons.size
+                                    courseProgress[course.id] = progressRepository.getCourseProgressPercent(lessons, progress)
+                                    currentLesson[course.id] = lessons.firstOrNull { lesson ->
+                                        progress.none { it.lessonId == lesson.id }
+                                    }
+                                }
+                            } else if (enrolment.status == EnrolmentStatus.PENDING) {
+                                pendingUiList += uiModel
                             }
                         }
                     }
+
+                    acceptedEnrolments.value = acceptedUiList
+                    pendingEnrolments.value = pendingUiList
                 },
                 onFailure = { _error.value = it.message }
             )
             _loading.value = false
+        }
+    }
+
+
+    fun loadLessonsAndProgress(
+        courseId: String,
+        studentId: String,
+        onResult: (lessons: List<Lesson>, progress: List<LessonProgress>) -> Unit
+    ) {
+        viewModelScope.launch {
+            val lessons = lessonRepository.getLessonsByCourse(courseId).getOrNull().orEmpty()
+            val progress = progressRepository.getCompletedLessons(courseId, studentId).getOrNull().orEmpty()
+            onResult(lessons, progress)
+        }
+    }
+
+    fun getCourseCompletionStatus(
+        courseId: String,
+        lessons: List<Lesson>,
+        progress: List<LessonProgress>,
+        quizId: String,
+        studentId: String,
+        passThreshold: Int = 50,
+        onResult: (CourseCompletionStatus) -> Unit
+    ) {
+        viewModelScope.launch {
+            val status = GetCourseCompletionStatusUseCase(quizResultRepository)(
+                courseId, lessons, progress, quizId, studentId, passThreshold
+            )
+            onResult(status)
         }
     }
 

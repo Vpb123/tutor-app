@@ -30,8 +30,8 @@ import java.util.Locale
 @Composable
 fun EnrolmentRequestCard(
     request: EnrolmentRequestUiModel,
-    onAccept: (String) -> Unit,
-    onReject: (String) -> Unit
+    onAccept: (EnrolmentRequestUiModel) -> Unit,
+    onReject: (EnrolmentRequestUiModel) -> Unit
 ) {
     Surface(
         shape = RoundedCornerShape(16.dp),
@@ -70,7 +70,7 @@ fun EnrolmentRequestCard(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Button(
-                    onClick = { onAccept(request.enrolmentId) },
+                    onClick = { onAccept(request) },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
@@ -83,7 +83,7 @@ fun EnrolmentRequestCard(
                 }
 
                 OutlinedButton(
-                    onClick = { onReject(request.enrolmentId) },
+                    onClick = { onReject(request) },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = MaterialTheme.colorScheme.error

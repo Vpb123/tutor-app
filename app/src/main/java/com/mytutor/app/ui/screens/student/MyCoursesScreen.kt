@@ -3,7 +3,9 @@ package com.mytutor.app.ui.screens.student
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,33 +28,31 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.mytutor.app.data.remote.FirebaseService.currentUserId
 import com.mytutor.app.presentation.course.CourseViewModel
-import com.mytutor.app.presentation.user.UserViewModel
-import androidx.compose.runtime.*
 
 @Composable
 fun MyCoursesScreen(
     navController: NavController,
-    viewModel: CourseViewModel = hiltViewModel(),
-    userViewModel: UserViewModel = hiltViewModel(),
-
+    viewModel: CourseViewModel
 ) {
-    val user by userViewModel.user.collectAsState()
-    val studentId = user?.uid ?: return
+
+    val studentId = currentUserId
     val pendingEnrolments = viewModel.pendingEnrolments.collectAsState().value
     val acceptedEnrolments = viewModel.acceptedEnrolments.collectAsState().value
-    val tutorNames = viewModel.tutorNames
     val lessonCounts = viewModel.lessonCounts
     val courseProgress = viewModel.courseProgress
     val currentLesson = viewModel.currentLesson
 
     LaunchedEffect(Unit) {
-        viewModel.loadStudentEnrolmentsAndProgress(studentId)
+        studentId?.let { viewModel.loadStudentEnrolmentsAndProgress(it) }
+        println("Pending: ${viewModel.pendingEnrolments.value.size}")
+        println("Accepted: ${viewModel.acceptedEnrolments.value.size}")
     }
 
     LazyColumn(
@@ -62,15 +62,29 @@ fun MyCoursesScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        if (pendingEnrolments.isEmpty() && acceptedEnrolments.isEmpty()) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = 80.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("You haven't enrolled in any courses yet.", style = MaterialTheme.typography.bodyLarge)
+                }
+            }
+        }
+
         if (pendingEnrolments.isNotEmpty()) {
             item {
                 Text("Pending Courses", style = MaterialTheme.typography.titleLarge)
             }
             items(pendingEnrolments) { enrolment ->
                 PendingCourseCard(
-                    courseId = enrolment.courseId,
-                    tutorName = tutorNames[enrolment.courseId] ?: "Tutor",
-                    subject = "Subject Info" // replace if available
+                    courseTitle = enrolment?.courseTitle ?: "Course",
+                    description = enrolment?.description ?: "",
+                    tutorName = enrolment?.tutorName?:"Tutor",
+                    subject = enrolment?.subject ?: "Subject"
                 )
             }
         }
@@ -82,15 +96,13 @@ fun MyCoursesScreen(
             items(acceptedEnrolments) { enrolment ->
                 val courseId = enrolment.courseId
                 EnrolledCourseCard(
-                    courseId = courseId,
-                    tutorName = tutorNames[courseId] ?: "Tutor",
+                    courseTitle = enrolment?.courseTitle ?: "Course",
+                    description = enrolment?.description ?: "",
+                    tutorName = enrolment?.tutorName?:"Tutor",
                     lessonCount = lessonCounts[courseId] ?: 0,
                     progress = courseProgress[courseId] ?: 0f,
                     onContinue = {
-                        val lesson = currentLesson[courseId]
-                        lesson?.let {
-                            navController.navigate("lessonPlayer/${courseId}/${lesson.id}")
-                        }
+                        navController.navigate("courseDetail/$courseId")
                     }
                 )
             }
@@ -99,24 +111,45 @@ fun MyCoursesScreen(
 }
 
 @Composable
-fun PendingCourseCard(courseId: String, tutorName: String, subject: String) {
+fun PendingCourseCard(
+    courseTitle: String,
+    tutorName: String,
+    description: String,
+    subject: String
+) {
     ElevatedCard(
         colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text("$courseId", style = MaterialTheme.typography.titleMedium)
-            Text("👤 $tutorName", style = MaterialTheme.typography.bodySmall)
-            Text("📚 $subject", style = MaterialTheme.typography.bodySmall)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Text(courseTitle, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(description, style = MaterialTheme.typography.bodySmall)
             Spacer(modifier = Modifier.height(8.dp))
-            AssistChip(onClick = {}, label = { Text("Pending Approval") })
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text("👤 $tutorName", style = MaterialTheme.typography.bodySmall)
+                Text("📚 $subject", style = MaterialTheme.typography.bodySmall)
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                AssistChip(onClick = {}, label = { Text("Pending Approval") })
+            }
         }
     }
 }
 
+
 @Composable
 fun EnrolledCourseCard(
-    courseId: String,
+    courseTitle: String,
+    description: String,
     tutorName: String,
     lessonCount: Int,
     progress: Float,
@@ -126,10 +159,19 @@ fun EnrolledCourseCard(
         colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(courseId, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            Text("👤 $tutorName", style = MaterialTheme.typography.bodySmall)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Text(courseTitle, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(description, style = MaterialTheme.typography.bodySmall)
             Spacer(modifier = Modifier.height(8.dp))
+            Text("👤 $tutorName", style = MaterialTheme.typography.bodySmall)
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Progress bar + lesson status
             LinearProgressIndicator(
                 progress = progress / 100f,
                 modifier = Modifier.fillMaxWidth(),
@@ -137,19 +179,26 @@ fun EnrolledCourseCard(
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                "Progress: ${"%.1f".format(progress)}%",
+                text = "Progress: ${"%.1f".format(progress)}%  |  0 / $lessonCount lessons",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(
-                onClick = onContinue,
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
             ) {
-                Icon(Icons.Default.PlayArrow, contentDescription = null)
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(if (progress == 0f) "Start Course" else "Continue")
+                Button(
+                    onClick = onContinue,
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                ) {
+                    Icon(Icons.Default.PlayArrow, contentDescription = null)
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(if (progress == 0f) "Start Course" else "Continue")
+                }
             }
         }
     }
 }
+

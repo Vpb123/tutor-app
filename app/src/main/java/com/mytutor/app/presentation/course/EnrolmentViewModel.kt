@@ -28,18 +28,6 @@ class EnrolmentViewModel @Inject constructor(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
-    fun loadPendingEnrolments(courseIds: List<String>) {
-        _loading.value = true
-        viewModelScope.launch {
-            val result = enrolmentRepository.getPendingEnrolmentsForTutorCourses(courseIds)
-            result.fold(
-                onSuccess = { _pendingEnrolments.value = it },
-                onFailure = { _error.value = it.message }
-            )
-            _loading.value = false
-        }
-    }
-
     fun acceptEnrolment(courseId: String, studentId: String, onSuccess: () -> Unit = {}) {
         _loading.value = true
         viewModelScope.launch {
@@ -74,17 +62,4 @@ class EnrolmentViewModel @Inject constructor(
         }
     }
 
-    fun loadAcceptedEnrolments(courseId: String) {
-        _loading.value = true
-        viewModelScope.launch {
-            val result = enrolmentRepository.getEnrolmentsByCourse(courseId)
-            result.fold(
-                onSuccess = { enrolments ->
-                    _acceptedEnrolments.value = enrolments.filter { it.status == EnrolmentStatus.ACCEPTED }
-                },
-                onFailure = { _error.value = it.message }
-            )
-            _loading.value = false
-        }
-    }
 }

@@ -68,7 +68,6 @@ fun TutorCourseListScreen(
         return
     }
 
-    // Load tutor's courses
     LaunchedEffect(user!!.uid) {
         viewModel.loadCoursesByTutor(user!!.uid)
     }
