@@ -5,6 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import android.content.Context
 import android.util.Log
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.SetOptions
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.ktx.storage
+import com.mytutor.app.data.remote.FirebaseService.firestore
 import com.mytutor.app.data.remote.models.User
 import com.mytutor.app.data.remote.models.UserRole
 import com.mytutor.app.data.remote.repository.AuthRepository
@@ -107,6 +112,35 @@ class UserViewModel @Inject constructor(
                 _error.value = e.message
                 _isLoading.value = false
                 onFailure(e.message ?: "Unknown error during deletion")
+            }
+        }
+    }
+
+    fun uploadProfileImage(imageUri: Uri) {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val storageRef = Firebase.storage.reference.child("profile_images/$uid.jpg")
+        println("StorageRef: $storageRef")
+        viewModelScope.launch {
+            try {
+                println("Uploading image to Firebase Storage...")
+                val uploadTask = storageRef.putFile(imageUri).await()
+
+                println("Upload complete. Fetching download URL...")
+                val downloadUrl = storageRef.downloadUrl.await().toString()
+
+                println("Download URL: $downloadUrl")
+
+                val updatedUser = user.value?.copy(profileImageUrl = downloadUrl)
+                updatedUser?.let {
+                    firestore.collection("users").document(uid)
+                        .set(it, SetOptions.merge()).await()
+
+                    _user.value = it
+                    println("User document updated.")
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                println("Upload failed: ${e.message}")
             }
         }
     }

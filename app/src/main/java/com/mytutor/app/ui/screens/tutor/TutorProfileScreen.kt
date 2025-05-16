@@ -4,7 +4,9 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -32,6 +34,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.google.firebase.auth.FirebaseAuth
 import com.mytutor.app.presentation.auth.AuthViewModel
 import com.mytutor.app.presentation.user.UserViewModel
+import androidx.compose.material.icons.filled.Close
 
 @Composable
 fun TutorProfileScreen(
@@ -44,16 +47,26 @@ fun TutorProfileScreen(
     val user by viewModel.user.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
-    LaunchedEffect(Unit) {
-        viewModel.loadCurrentUserProfile()
-    }
-
     var isEditing by remember { mutableStateOf(false) }
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var specialization by remember { mutableStateOf("") }
     var experience by remember { mutableStateOf("") }
     var bio by remember { mutableStateOf("") }
+    var profileImageUri by remember { mutableStateOf<Uri?>(null) }
+
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            profileImageUri = it
+            viewModel.uploadProfileImage(it)
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.loadCurrentUserProfile()
+    }
 
     LaunchedEffect(user) {
         user?.let {
@@ -89,16 +102,40 @@ fun TutorProfileScreen(
                             .padding(horizontal = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Image(
-                            painter = rememberAsyncImagePainter(
-                                model = user!!.profileImageUrl ?: "https://via.placeholder.com/150"
-                            ),
-                            contentDescription = "Profile Image",
+                        Box(
                             modifier = Modifier
                                 .size(80.dp)
                                 .clip(CircleShape)
-                                .border(1.5.dp, MaterialTheme.colorScheme.onPrimary, CircleShape)
-                        )
+                        ) {
+                            Image(
+                                painter = rememberAsyncImagePainter(
+                                    model = profileImageUri ?: user!!.profileImageUrl ?: "https://via.placeholder.com/150"
+                                ),
+                                contentDescription = "Profile Image",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .matchParentSize()
+                                    .border(1.5.dp, MaterialTheme.colorScheme.onPrimary, CircleShape)
+                            )
+
+                            if (isEditing) {
+                                IconButton(
+                                    onClick = { imagePickerLauncher.launch("image/*") },
+                                    modifier = Modifier
+                                        .align(Alignment.BottomEnd)
+                                        .size(28.dp)
+                                        .background(MaterialTheme.colorScheme.primary, CircleShape)
+                                        .border(1.dp, Color.White, CircleShape)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Edit,
+                                        contentDescription = "Change Profile Picture",
+                                        tint = Color.White,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                            }
+                        }
 
                         Spacer(modifier = Modifier.width(16.dp))
 
@@ -146,6 +183,32 @@ fun TutorProfileScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 horizontalAlignment = Alignment.End
             ) {
+                if (isEditing) {
+                    // Cancel Button
+                    FloatingActionButton(
+                        onClick = {
+                            // Revert fields to original user data
+                            user?.let {
+                                name = it.displayName
+                                email = it.email ?: ""
+                                specialization = it.specialization ?: ""
+                                experience = it.experienceYears?.toString() ?: ""
+                                bio = it.bio ?: ""
+                            }
+                            isEditing = false
+                        },
+                        containerColor = Color.Gray,
+                        contentColor = Color.White,
+                        shape = CircleShape
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Close, // Or use a cancel icon if available
+                            contentDescription = "Cancel Edit"
+                        )
+                    }
+                }
+
+                // Save/Edit Button
                 FloatingActionButton(
                     onClick = {
                         if (isEditing) {
@@ -170,12 +233,13 @@ fun TutorProfileScreen(
                     )
                 }
 
+                // Logout Button
                 FloatingActionButton(
                     onClick = {
                         authViewModel.logout()
                         onLogout()
                     },
-                    containerColor = MaterialTheme.colorScheme.primary,
+                    containerColor = Color.Red,
                     contentColor = MaterialTheme.colorScheme.onPrimary,
                     shape = CircleShape
                 ) {

@@ -23,6 +23,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
 import com.google.firebase.auth.FirebaseAuth
 import com.mytutor.app.presentation.student.StudentProfileViewModel
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.ui.graphics.Color
+
 
 @Composable
 fun StudentProfileScreen(
@@ -101,11 +104,6 @@ fun StudentProfileScreen(
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onPrimary
                                 )
-                                Text(
-                                    text = "${u.course ?: "Course"} | Roll No: ${u.studentId ?: "—"}",
-                                    fontSize = 14.sp,
-                                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f)
-                                )
                             }
                         }
                     }
@@ -118,39 +116,60 @@ fun StudentProfileScreen(
                         elevation = CardDefaults.cardElevation(4.dp)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
-                            ReadOnlyRow("Registration No.", u.studentId ?: "—")
-                            ReadOnlyRow("Academic Year", u.academicYear ?: "—")
-                            ReadOnlyRow("Course", u.course ?: "—")
-                            ReadOnlyRow("University", u.university ?: "—")
-
                             EditableRow("Phone", phone, isEditing) { phone = it }
                             EditableRow("Address", address, isEditing) { address = it }
                             EditableRow("Bio", bio, isEditing) { bio = it }
-
                             ReadOnlyRow("Email", u.email ?: "—")
                         }
                     }
                 }
 
-                // Floating Edit/Save Button
-                FloatingActionButton(
-                    onClick = {
-                        if (isEditing) {
-                            uid?.let { viewModel.updateEditableFields(it, bio, phone, address) }
-                        }
-                        isEditing = !isEditing
-                    },
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                    shape = CircleShape,
+                Column(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
-                        .padding(16.dp)
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalAlignment = Alignment.End
                 ) {
-                    Icon(
-                        imageVector = if (isEditing) Icons.Default.Check else Icons.Default.Edit,
-                        contentDescription = if (isEditing) "Save" else "Edit"
-                    )
+                    if (isEditing) {
+                        // Cancel button
+                        FloatingActionButton(
+                            onClick = {
+                                user?.let {
+                                    bio = it.bio
+                                    phone = it.phoneNumber ?: ""
+                                    address = it.address ?: ""
+                                }
+                                isEditing = false
+                            },
+                            containerColor = Color.Gray,
+                            contentColor = Color.White,
+                            shape = CircleShape
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Cancel Edit"
+                            )
+                        }
+                    }
+
+                    // Edit / Save button
+                    FloatingActionButton(
+                        onClick = {
+                            if (isEditing) {
+                                uid?.let { viewModel.updateEditableFields(it, bio, phone, address) }
+                            }
+                            isEditing = !isEditing
+                        },
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        shape = CircleShape
+                    ) {
+                        Icon(
+                            imageVector = if (isEditing) Icons.Default.Check else Icons.Default.Edit,
+                            contentDescription = if (isEditing) "Save" else "Edit"
+                        )
+                    }
                 }
             }
 

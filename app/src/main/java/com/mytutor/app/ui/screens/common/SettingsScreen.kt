@@ -32,11 +32,7 @@ fun SettingsScreen(
 
         Button(
             onClick = {
-                authViewModel.logout() // 🔐 logout
-                navController.navigate("auth") {
-                    popUpTo(0) { inclusive = true }
-                    launchSingleTop = true
-                }
+                authViewModel.logout()
             },
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)

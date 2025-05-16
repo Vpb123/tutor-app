@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
@@ -59,7 +60,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil.ImageLoader
 import coil.compose.rememberAsyncImagePainter
-import coil.decode.SvgDecoder
+//import coil.decode.SvgDecoder
 import com.mytutor.app.data.remote.FirebaseService.currentUserId
 import com.mytutor.app.data.remote.models.Course
 import com.mytutor.app.data.remote.models.CourseSubject
@@ -68,6 +69,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Schedule
+import coil.decode.SvgDecoder
 
 @RequiresApi(Build.VERSION_CODES.P)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -84,38 +86,34 @@ fun AllCoursesScreen(
     var selectedSubject by remember { mutableStateOf<CourseSubject?>(null) }
     val subjectOptions = CourseSubject.values().toList()
     val focusManager = LocalFocusManager.current
+
     LaunchedEffect(Unit) {
         courseViewModel.loadAllCourses()
     }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .clickable(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }
-            ) {
-                focusManager.clearFocus()
-            }
+            ) { focusManager.clearFocus() }
+            .padding(8.dp)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-
-            HeroSection(
-                searchQuery = searchQuery,
-                onSearchChange = { searchQuery = it }
-            )
-
-
+            HeroSection(searchQuery = searchQuery, onSearchChange = { searchQuery = it })
             Spacer(modifier = Modifier.height(8.dp))
 
             LazyRow(
-                contentPadding = PaddingValues(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                contentPadding = PaddingValues(horizontal = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 item {
                     FilterChip(
                         selected = selectedSubject == null,
                         onClick = { selectedSubject = null },
-                        label = { Text("All") }
+                        label = { Text("All") },
+                        shape = MaterialTheme.shapes.large
                     )
                 }
                 items(subjectOptions.size) { index ->
@@ -123,12 +121,13 @@ fun AllCoursesScreen(
                     FilterChip(
                         selected = selectedSubject == subject,
                         onClick = { selectedSubject = subject },
-                        label = { Text(subject.name.replace("_", " ")) }
+                        label = { Text(subject.name.replace("_", " ")) },
+                        shape = MaterialTheme.shapes.large
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             if (loading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -169,8 +168,6 @@ fun AllCoursesScreen(
     }
 }
 
-private fun ColumnScope.item(function: () -> Unit) {}
-
 @Composable
 fun ModernCourseCard(
     course: Course,
@@ -178,20 +175,25 @@ fun ModernCourseCard(
     lessonCount: Int,
     onView: () -> Unit,
     onEnroll: () -> Unit
-){
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight(),
-        elevation = CardDefaults.cardElevation(8.dp)
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface
+        ),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(6.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(20.dp)) {
             Text(
                 text = course.title,
-                style =  MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -211,14 +213,24 @@ fun ModernCourseCard(
                 MetaInfoItem(Icons.Default.Schedule, "Duration: ${course.durationInHours}h")
             }
 
+            Spacer(modifier = Modifier.height(16.dp))
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedButton(onClick = onView) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                OutlinedButton(
+                    onClick = onView,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
                     Text("View Details")
                 }
-                Button(onClick = onEnroll) {
+                Button(
+                    onClick = onEnroll,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
                     Text("Enroll")
                 }
             }
@@ -232,7 +244,8 @@ fun HeroSection(searchQuery: String, onSearchChange: (String) -> Unit) {
     val context = LocalContext.current
     val imageLoader = remember {
         ImageLoader.Builder(context)
-            .components { add(SvgDecoder.Factory()) }
+            .components { add(
+                SvgDecoder.Factory()) }
             .build()
     }
 
@@ -312,7 +325,3 @@ fun MetaInfoItem(icon: ImageVector, label: String) {
         Text(label, style = MaterialTheme.typography.bodySmall)
     }
 }
-
-
-
-
