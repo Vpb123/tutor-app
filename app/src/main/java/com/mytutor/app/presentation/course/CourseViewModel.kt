@@ -40,7 +40,7 @@ class CourseViewModel @Inject constructor(
     val lessonCounts = mutableStateMapOf<String, Int>()
     val pendingEnrolments= MutableStateFlow<List<EnrolmentRequestUiModel>>(emptyList())
     val acceptedEnrolments = MutableStateFlow<List<EnrolmentRequestUiModel>>(emptyList())
-
+    val studentCounts = mutableStateMapOf<String, Int>()
     val courseProgress = mutableStateMapOf<String, Float>()
     val currentLesson = mutableStateMapOf<String, Lesson?>()
     private val _myCourses = MutableStateFlow<List<Course>>(emptyList())
@@ -105,12 +105,26 @@ class CourseViewModel @Inject constructor(
         viewModelScope.launch {
             val result = courseRepository.getCoursesByTutor(tutorId)
             result.fold(
-                onSuccess = { _myCourses.value = it },
+                onSuccess = { courses ->
+                    _myCourses.value = courses
+
+                    courses.forEach { course ->
+                        launch {
+
+                            val lessons = lessonRepository.getLessonsByCourse(course.id).getOrNull()
+                            lessonCounts[course.id] = lessons?.size ?: 0
+
+                            val enrolments = enrolmentRepository.getEnrolmentsByCourse(course.id).getOrNull()
+                            studentCounts[course.id] = enrolments?.count { it.status == EnrolmentStatus.ACCEPTED } ?: 0
+                        }
+                    }
+                },
                 onFailure = { _error.value = it.message }
             )
             _loading.value = false
         }
     }
+
 
     fun requestEnrolment(studentId: String, courseId: String) {
         _loading.value = true

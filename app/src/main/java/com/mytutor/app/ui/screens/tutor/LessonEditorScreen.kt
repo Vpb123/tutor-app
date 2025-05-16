@@ -52,8 +52,14 @@ fun LessonEditorScreen(
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(lessonId) {
-        if (lessonId != null) viewModel.selectLesson(lessonId)
+    LaunchedEffect(lessonId, viewModel) {
+        if (lessonId != null) {
+            viewModel.selectLesson(lessonId)
+        } else {
+            viewModel.selectedLesson.value?.id?.let {
+                viewModel.selectLesson(it)
+            }
+        }
     }
 
     LaunchedEffect(existingLesson?.id) {

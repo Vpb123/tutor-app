@@ -29,7 +29,7 @@ fun DashboardChart(
     barColor: Color = MaterialTheme.colorScheme.primary,
     maxBarWidth: Dp = 250.dp
 ) {
-    if (analytics.isEmpty()) return
+    val filtered = analytics.filter { it.enrolledCount > 0 }
 
     Column(
         modifier = modifier
@@ -42,18 +42,29 @@ fun DashboardChart(
             modifier = Modifier.padding(bottom = 12.dp)
         )
 
-        analytics.forEach { course ->
-            CourseBarItem(
-                title = course.courseTitle,
-                value = course.enrolledCount,
-                max = analytics.maxOfOrNull { it.enrolledCount } ?: 1,
-                color = barColor,
-                maxBarWidth = maxBarWidth
+        if (filtered.isEmpty()) {
+            Text(
+                text = "No students enrolled in any course yet.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(vertical = 8.dp)
             )
-            Spacer(modifier = Modifier.height(16.dp))
+        } else {
+            val maxValue = filtered.maxOfOrNull { it.enrolledCount } ?: 1
+            filtered.forEach { course ->
+                CourseBarItem(
+                    title = course.courseTitle,
+                    value = course.enrolledCount,
+                    max = maxValue,
+                    color = barColor,
+                    maxBarWidth = maxBarWidth
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
         }
     }
 }
+
 
 @Composable
 fun CourseBarItem(

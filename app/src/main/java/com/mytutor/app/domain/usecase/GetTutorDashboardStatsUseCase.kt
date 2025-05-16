@@ -27,16 +27,16 @@ class GetTutorDashboardStatsUseCase(
 
             val resultList = mutableListOf<CourseAnalytics>()
             val courses = coursesResult.getOrNull().orEmpty()
-
+            println("courses in use case $courses")
             for (course in courses) {
                 val quiz = quizRepository.getQuizByCourseId(course.id).getOrNull()
-                val quizId = quiz?.id ?: continue
+                val quizId = quiz?.id
                 val enrolments = enrolmentRepository
                     .getEnrolmentsByCourse(course.id)
                     .getOrNull()
                     ?.filter { it.status == EnrolmentStatus.ACCEPTED }
                     ?: emptyList()
-
+                println("enrolments in use case $enrolments")
                 val lessons = lessonRepository.getLessonsByCourse(course.id).getOrNull().orEmpty()
 
                 var totalProgress = 0f
@@ -49,28 +49,27 @@ class GetTutorDashboardStatsUseCase(
                         .getOrNull()
                         .orEmpty()
 
-                    // calculate progress
                     val progressPercent = getCourseProgressUseCase(lessons, progressList)
                     totalProgress += progressPercent
 
-                    // get course status
-                    val status = getCourseCompletionStatusUseCase(
-                        courseId = course.id,
-                        lessons = lessons,
-                        progressList = progressList,
-                        quizId = quizId,
-                        studentId = enrolment.studentId
-                    )
+
+                    val status = if (quizId != null) {
+                        getCourseCompletionStatusUseCase(
+                            courseId = course.id,
+                            lessons = lessons,
+                            progressList = progressList,
+                            quizId = quizId,
+                            studentId = enrolment.studentId
+                        )
+                    } else null
 
                     if (status == CourseCompletionStatus.COMPLETED) completedCount++
 
-                    val result = quizResultRepository
-                            .getQuizResult(quizId, enrolment.studentId)
-                            .getOrNull()
+                    if (quizId != null) {
+                        val result = quizResultRepository.getQuizResult(quizId, enrolment.studentId).getOrNull()
+                        if ((result?.score ?: 0) >= 50) passedQuizCount++
+                    }
 
-
-
-                    if ((result?.score ?: 0) >= 50) passedQuizCount++
                 }
 
                 val avgProgress = if (enrolments.isNotEmpty()) {

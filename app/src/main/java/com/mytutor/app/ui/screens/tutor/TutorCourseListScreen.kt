@@ -39,6 +39,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -107,32 +108,48 @@ fun TutorCourseListScreen(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(course.title, style = MaterialTheme.typography.titleLarge)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(course.description, style = MaterialTheme.typography.bodyMedium)
-                        Spacer(modifier = Modifier.height(12.dp))
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    ) {
+                        // Course Title
+                        Text(
+                            text = course.title,
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
 
+                        // Course Description
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = course.description,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+
+                        // Meta Info Section
+                        Spacer(modifier = Modifier.height(16.dp))
                         Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(Icons.Default.Person, contentDescription = "Students")
-                            Text("Students: 0")
-
-                            Icon(Icons.Default.MenuBook, contentDescription = "Lessons")
-                            Text("Lessons: ${course.lessonCount}")
-
-                            Icon(Icons.Default.Schedule, contentDescription = "Duration")
-                            Text("${course.durationInHours} hrs")
+                            MetaItem(Icons.Default.MenuBook, "${viewModel.lessonCounts[course.id] ?: 0} Lessons")
+                            MetaItem(Icons.Default.Person, "${viewModel.studentCounts[course.id] ?: 0} Students")
+                            MetaItem(Icons.Default.Schedule, "${course.durationInHours} hrs")
                         }
 
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                            OutlinedButton(onClick = {
-                                navController.navigate("createCourse/${course.id}")
-                            }) {
+                        // Action Buttons Section
+                        Spacer(modifier = Modifier.height(20.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            OutlinedButton(
+                                onClick = { navController.navigate("createCourse/${course.id}") }
+                            ) {
                                 Icon(Icons.Default.Edit, contentDescription = null)
                                 Spacer(Modifier.width(6.dp))
                                 Text("Edit")
@@ -172,11 +189,32 @@ fun TutorCourseListScreen(
                             }
                         }
                     }
+
+
                 }
 
             }
 
             Spacer(modifier = Modifier.height(80.dp))
         }
+    }
+}
+
+@Composable
+private fun MetaItem(icon: ImageVector, label: String) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.secondary
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurface
+        )
     }
 }

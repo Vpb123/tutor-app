@@ -1,23 +1,15 @@
 package com.mytutor.app.ui.screens.tutor
 
-import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -26,12 +18,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import com.mytutor.app.data.remote.models.CourseAnalytics
 import com.mytutor.app.presentation.course.EnrolmentViewModel
 import com.mytutor.app.presentation.dashboard.DashboardViewModel
 import com.mytutor.app.presentation.user.UserViewModel
@@ -39,8 +28,6 @@ import com.mytutor.app.ui.screens.tutor.components.CourseSummaryCard
 import com.mytutor.app.ui.screens.tutor.components.DashboardChart
 import com.mytutor.app.ui.screens.tutor.components.DashboardDonutChart
 import com.mytutor.app.ui.screens.tutor.components.PendingRequestsSection
-import com.mytutor.app.presentation.dashboard.EnrolmentRequestUiModel
-import com.mytutor.app.ui.theme.TutorAppTheme
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -64,6 +51,13 @@ fun TutorDashboardScreen(
 
     LaunchedEffect(user?.uid) {
         user?.uid?.let { dashboardViewModel.loadDashboard(it) }
+        println("DashboardScreen: $analytics");
+    }
+    LaunchedEffect(analytics) {
+        println("📊 Analytics Updated:")
+        analytics.forEach {
+            println("Course: ${it.courseTitle}, Enrolled: ${it.enrolledCount}, Progress: ${it.averageProgress}")
+        }
     }
 
     Scaffold(

@@ -125,6 +125,7 @@ fun NavGraphBuilder.tutorNavGraph(navController: NavHostController, lessonViewMo
             viewModel = lessonViewModel,
             onSave = { page, goToNext ->
                 val lesson = lessonViewModel.selectedLesson.value
+                println("selectedLesson: $lesson")
                 if (lesson != null) {
                     val updatedPages = lesson.pages.toMutableList()
                     if (pageIndex < updatedPages.size) {

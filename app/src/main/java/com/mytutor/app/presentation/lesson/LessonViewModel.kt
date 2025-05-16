@@ -108,48 +108,6 @@ class LessonViewModel @Inject constructor(
         }
     }
 
-    fun markLessonAsComplete(courseId: String, lessonId: String, studentId: String) {
-        viewModelScope.launch {
-            lessonProgressRepository.markLessonCompleted(
-                LessonProgress(
-                    courseId = courseId,
-                    lessonId = lessonId,
-                    studentId = studentId,
-                    completedAt = System.currentTimeMillis()
-                )
-            )
-
-            // Refresh all lessons and progress
-            val currentLessons = _lessons.value
-            updateLessonStatuses(courseId, studentId, currentLessons)
-        }
-    }
-
-    fun canAccessLesson(lessonId: String, onResult: (Boolean) -> Unit) {
-        val courseId = lastCourseId ?: return
-        val studentId = lastStudentId ?: return
-        val currentLessons = _lessons.value
-
-        val targetLesson = currentLessons.find { it.id == lessonId } ?: run {
-            onResult(false)
-            return
-        }
-
-        viewModelScope.launch {
-            val progressResult = lessonProgressRepository.getCompletedLessons(courseId, studentId)
-            progressResult.fold(
-                onSuccess = { progressList ->
-                    val access = canStudentAccessLessonUseCase(targetLesson, currentLessons, progressList)
-                    onResult(access)
-                },
-                onFailure = {
-                    _error.value = it.message
-                    onResult(false)
-                }
-            )
-        }
-    }
-
     fun updateLesson(lesson: Lesson, onSuccess: () -> Unit) {
         viewModelScope.launch {
             val result = lessonRepository.updateLesson(lesson)
@@ -171,6 +129,7 @@ class LessonViewModel @Inject constructor(
             )
         }
     }
+
     fun uploadFile(context: Context, uri: Uri, onResult: (Result<String>) -> Unit) {
         viewModelScope.launch {
             try {

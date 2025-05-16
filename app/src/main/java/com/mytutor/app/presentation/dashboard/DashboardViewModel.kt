@@ -24,7 +24,7 @@ class DashboardViewModel @Inject constructor(
     private val _dashboardData = MutableStateFlow<List<CourseAnalytics>>(emptyList())
     val dashboardData: StateFlow<List<CourseAnalytics>> = _dashboardData
 
-    private val _courseStats = MutableStateFlow(Pair(0, 0)) // (published, unpublished)
+    private val _courseStats = MutableStateFlow(Pair(0, 0))
     val courseStats: StateFlow<Pair<Int, Int>> = _courseStats
 
     private val _pendingRequests = MutableStateFlow<List<EnrolmentRequestUiModel>>(emptyList())
@@ -42,15 +42,17 @@ class DashboardViewModel @Inject constructor(
             try {
                 val coursesResult = courseRepository.getCoursesByTutor(tutorId)
                 val courses = coursesResult.getOrNull().orEmpty()
+                println("📘 Courses Found: ${courses.size}")
                 val courseIds = courses.map { it.id }
 
-                val published = courses.count { it.isPublished }
-                val unpublished = courses.size - published
+                val published = courses.size
+                val unpublished = 0
                 _courseStats.value = Pair(published, unpublished)
 
                 val analyticsResult = getTutorDashboardStatsUseCase(tutorId)
                 analyticsResult.onSuccess {
                     _dashboardData.value = it
+                    println(it);
                 }.onFailure {
                     _error.value = it.message
                 }
