@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
@@ -103,6 +104,10 @@ fun MyCoursesScreen(
                     progress = courseProgress[courseId] ?: 0f,
                     onContinue = {
                         navController.navigate("courseDetail/$courseId")
+                    } ,
+                    showTakeQuiz = (courseProgress[courseId] ?: 0f) >= 100f,
+                    onTakeQuiz = {
+                            navController.navigate("takeQuiz/$courseId/$currentUserId")
                     }
                 )
             }
@@ -153,7 +158,9 @@ fun EnrolledCourseCard(
     tutorName: String,
     lessonCount: Int,
     progress: Float,
-    onContinue: () -> Unit
+    onContinue: () -> Unit,
+    showTakeQuiz: Boolean = false,
+    onTakeQuiz: () -> Unit = {}
 ) {
     ElevatedCard(
         colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -179,7 +186,7 @@ fun EnrolledCourseCard(
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Progress: ${"%.1f".format(progress)}%  |  0 / $lessonCount lessons",
+                text = "Progress: ${"%.1f".format(progress)}%  |  ${((progress / 100f) * lessonCount).toInt()} / $lessonCount lessons",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -187,17 +194,45 @@ fun EnrolledCourseCard(
             Spacer(modifier = Modifier.height(12.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
+                horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.End)
             ) {
-                Button(
-                    onClick = onContinue,
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-                ) {
-                    Icon(Icons.Default.PlayArrow, contentDescription = null)
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(if (progress == 0f) "Start Course" else "Continue")
+                if (progress >= 100f) {
+                    Button(
+                        onClick = onContinue,
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CheckCircle,
+                            contentDescription = "Completed",
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Completed", color = MaterialTheme.colorScheme.onTertiary)
+                    }
+                } else {
+                    Button(
+                        onClick = onContinue,
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PlayArrow,
+                            contentDescription = "Continue"
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(if (progress == 0f) "Start Course" else "Continue")
+                    }
+                }
+
+                if (showTakeQuiz) {
+                    Button(
+                        onClick = onTakeQuiz,
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+                    ) {
+                        Text("Take Quiz")
+                    }
                 }
             }
+
         }
     }
 }

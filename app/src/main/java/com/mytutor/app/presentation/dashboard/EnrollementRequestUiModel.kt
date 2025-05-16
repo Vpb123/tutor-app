@@ -12,5 +12,5 @@ data class EnrolmentRequestUiModel(
     val tutorName: String? = null,
     val status: EnrolmentStatus? = null,
     val description: String? = null,
-    val subject: String? = null
+    val subject: String? = null,
 )

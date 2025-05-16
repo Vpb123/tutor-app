@@ -17,6 +17,7 @@ import com.mytutor.app.ui.screens.student.AllCoursesScreen
 import com.mytutor.app.ui.screens.student.CourseViewScreen
 import com.mytutor.app.ui.screens.student.LessonPageViewScreen
 import com.mytutor.app.ui.screens.student.MyCoursesScreen
+import com.mytutor.app.ui.screens.student.StudentQuizScreen
 
 
 @RequiresApi(Build.VERSION_CODES.P)
@@ -82,5 +83,23 @@ fun NavGraphBuilder.studentNavGraph(
             navController = navController
         )
     }
+
+    composable(
+        route = "takeQuiz/{courseId}/{studentId}",
+        arguments = listOf(
+            navArgument("courseId") { type = NavType.StringType },
+            navArgument("studentId") { type = NavType.StringType }
+        )
+    ) { backStackEntry ->
+        val courseId = backStackEntry.arguments?.getString("courseId")!!
+        val studentId = backStackEntry.arguments?.getString("studentId")!!
+
+        StudentQuizScreen(
+            courseId = courseId,
+            studentId = studentId,
+            navController = navController
+        )
+    }
+
 
 }

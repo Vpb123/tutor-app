@@ -174,21 +174,6 @@ class QuizViewModel @Inject constructor(
         return expectedTotal == actualTotal
     }
 
-    fun updateQuestion(updated: QuizQuestion) {
-        _questions.value = _questions.value.map {
-            if (it.id == updated.id) updated else it
-        }
-    }
-    fun resetQuizCreation() {
-        _quiz.value = null
-        _questions.value = emptyList()
-        _error.value = null
-    }
-
-    fun setQuizLocally(updated: Quiz) {
-        _quiz.value = updated
-    }
-
     fun loadQuizById(quizId: String) {
         _loading.value = true
         viewModelScope.launch {

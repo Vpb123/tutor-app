@@ -177,7 +177,7 @@ fun ModernCourseCard(
     tutorName: String,
     lessonCount: Int,
     onView: () -> Unit,
-    onEnroll: () -> Unit
+    onEnroll: () -> Unit,
 ){
     Card(
         modifier = Modifier
