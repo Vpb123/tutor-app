@@ -9,5 +9,7 @@ data class Quiz(
     val title: String = "",
     val description: String = "",
     val createdBy: String = "",
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    val totalMarks: Int = 0,
+    val passPercentage: Int = 50
 )

@@ -21,13 +21,17 @@ import androidx.navigation.navArgument
 import com.mytutor.app.data.remote.models.Course
 import com.mytutor.app.presentation.course.CourseViewModel
 import com.mytutor.app.presentation.lesson.LessonViewModel
+import com.mytutor.app.presentation.quiz.QuizViewModel
 import com.mytutor.app.ui.screens.tutor.CreateOrEditCourseScreen
 import com.mytutor.app.ui.screens.tutor.LessonEditorScreen
 import com.mytutor.app.ui.screens.tutor.LessonListScreen
 import com.mytutor.app.ui.screens.tutor.LessonPageBuilderScreen
+import com.mytutor.app.ui.screens.tutor.QuizBuilderScreen
+import com.mytutor.app.ui.screens.tutor.QuizCreatorScreen
 import com.mytutor.app.ui.screens.tutor.TutorCourseListScreen
 import com.mytutor.app.ui.screens.tutor.TutorDashboardScreen
 import com.mytutor.app.ui.screens.tutor.TutorProfileScreen
+import com.mytutor.app.ui.screens.tutor.quiz.QuizQuestionEditorScreen
 
 @Composable
 fun TutorNavGraph(navController: NavHostController, startDestination: String = TutorBottomNavItem.Dashboard.route, onLogout: () -> Unit) {
@@ -146,6 +150,36 @@ fun NavGraphBuilder.tutorNavGraph(navController: NavHostController, lessonViewMo
             }
         )
     }
+
+    composable(
+        route = "quizCreator/{courseId}",
+        arguments = listOf(navArgument("courseId") { type = NavType.StringType })
+    ) { backStackEntry ->
+        val courseId = backStackEntry.arguments?.getString("courseId")!!
+        QuizCreatorScreen(courseId = courseId, navController = navController)
+    }
+
+    composable(
+        route = "quizBuilder/{quizId}",
+        arguments = listOf(navArgument("quizId") { type = NavType.StringType })
+    ) { backStackEntry ->
+        val quizId = backStackEntry.arguments?.getString("quizId")!!
+        QuizBuilderScreen(quizId = quizId, navController = navController)
+    }
+
+    composable(
+        route = "questionEditor/{quizId}",
+        arguments = listOf(navArgument("quizId") { type = NavType.StringType })
+    ) { backStackEntry ->
+        val quizId = backStackEntry.arguments?.getString("quizId")!!
+        val viewModel: QuizViewModel = hiltViewModel()
+        QuizQuestionEditorScreen(
+            quizId = quizId,
+            navController = navController,
+            viewModel = viewModel
+        )
+    }
+
 
 
 

@@ -51,6 +51,7 @@ class QuizViewModel @Inject constructor(
         }
     }
 
+
     fun loadQuizQuestions(quizId: String) {
         _loading.value = true
         viewModelScope.launch {
@@ -163,5 +164,42 @@ class QuizViewModel @Inject constructor(
             _loading.value = false
         }
     }
+    fun removeQuestion(questionId: String) {
+        _questions.value = _questions.value.filterNot { it.id == questionId }
+    }
+
+    fun isTotalMarksValid(): Boolean {
+        val expectedTotal = _quiz.value?.totalMarks ?: return false
+        val actualTotal = _questions.value.sumOf { it.marks }
+        return expectedTotal == actualTotal
+    }
+
+    fun updateQuestion(updated: QuizQuestion) {
+        _questions.value = _questions.value.map {
+            if (it.id == updated.id) updated else it
+        }
+    }
+    fun resetQuizCreation() {
+        _quiz.value = null
+        _questions.value = emptyList()
+        _error.value = null
+    }
+
+    fun setQuizLocally(updated: Quiz) {
+        _quiz.value = updated
+    }
+
+    fun loadQuizById(quizId: String) {
+        _loading.value = true
+        viewModelScope.launch {
+            val result = quizRepository.getQuizById(quizId)
+            result.fold(
+                onSuccess = { _quiz.value = it },
+                onFailure = { _error.value = it.message }
+            )
+            _loading.value = false
+        }
+    }
+
 
 }

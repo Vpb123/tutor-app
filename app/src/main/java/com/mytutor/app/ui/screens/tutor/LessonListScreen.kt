@@ -1,6 +1,7 @@
 package com.mytutor.app.ui.screens.tutor
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,10 +19,14 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedAssistChip
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -42,6 +47,7 @@ import androidx.navigation.NavHostController
 import com.mytutor.app.data.remote.models.Course
 import com.mytutor.app.presentation.course.CourseViewModel
 import com.mytutor.app.presentation.lesson.LessonViewModel
+import com.mytutor.app.presentation.quiz.QuizViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,7 +55,8 @@ fun LessonListScreen(
     courseId: String,
     navController: NavHostController,
     viewModel: LessonViewModel = hiltViewModel(),
-    courseViewModel: CourseViewModel = hiltViewModel()
+    courseViewModel: CourseViewModel = hiltViewModel(),
+    quizViewModel: QuizViewModel = hiltViewModel()
 ) {
     val lessons by viewModel.lessons.collectAsState()
     val error by viewModel.error.collectAsState()
@@ -62,7 +69,13 @@ fun LessonListScreen(
         }
         viewModel.loadLessons(courseId)
     }
+    val quiz by quizViewModel.quiz.collectAsState()
 
+    LaunchedEffect(selectedTab) {
+        if (selectedTab == 1) {
+            quizViewModel.loadQuiz(courseId)
+        }
+    }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -150,21 +163,83 @@ fun LessonListScreen(
                 }
 
                 1 -> {
-                    Text("Add a quiz for this course.", style = MaterialTheme.typography.bodyMedium)
-
+                if (quiz == null) {
+                    Text("No quiz added for this course.", style = MaterialTheme.typography.bodyMedium)
                     Spacer(modifier = Modifier.height(12.dp))
 
                     Button(
                         onClick = {
-//                            navController.navigate("quizCreator/$courseId")
-                                  },
+                            navController.navigate("quizCreator/$courseId")
+                        },
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Icon(Icons.Default.Add, contentDescription = "Add Quiz")
                         Spacer(Modifier.width(8.dp))
                         Text("Add Quiz")
                     }
+                } else {
+                    ElevatedCard(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
+                        colors = CardDefaults.elevatedCardColors()
+                    ) {
+                        Box(modifier = Modifier.fillMaxWidth()) {
+                            Column(modifier = Modifier.padding(20.dp)) {
+                                ListItem(
+                                    headlineContent  = { Text(quiz?.title ?: "Untitled Quiz", style = MaterialTheme.typography.titleLarge) },
+                                    supportingContent = { Text("Quiz already exists for this course.", style = MaterialTheme.typography.bodyMedium) }
+                                )
+
+                                Spacer(Modifier.height(12.dp))
+
+                                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                    ElevatedAssistChip(
+                                        onClick = {},
+                                        label = { Text("Total Marks: ${quiz?.totalMarks}") }
+                                    )
+                                    ElevatedAssistChip(
+                                        onClick = {},
+                                        label = { Text("Threshold: ${quiz?.passPercentage}%") }
+                                    )
+                                }
+
+                                Spacer(Modifier.height(16.dp))
+
+                                OutlinedButton(
+                                    onClick = {
+                                        navController.navigate("quizBuilder/${quiz?.id}")
+                                    },
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text("View or Edit Quiz")
+                                }
+                            }
+
+                            IconButton(
+                                onClick = {
+                                    quiz?.id?.let { id ->
+                                        quizViewModel.deleteQuiz(id) {
+                                            quizViewModel.loadQuiz(courseId)
+                                        }
+                                    }
+                                },
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .padding(12.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "Delete Quiz",
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        }
+                    }
                 }
+
+                }
+
             }
 
             if (error != null) {

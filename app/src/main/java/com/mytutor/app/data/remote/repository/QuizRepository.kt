@@ -86,4 +86,13 @@ class QuizRepository {
         }
     }
 
+    suspend fun getQuizById(quizId: String): Result<Quiz?> {
+        return try {
+            val snapshot = quizCollection.document(quizId).get().await()
+            Result.success(snapshot.toObject(Quiz::class.java))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
 }
