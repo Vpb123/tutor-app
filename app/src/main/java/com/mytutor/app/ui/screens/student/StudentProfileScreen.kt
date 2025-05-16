@@ -1,7 +1,11 @@
 package com.mytutor.app.ui.screens.student
 
+import android.net.Uri
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -10,12 +14,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -23,13 +31,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
 import com.google.firebase.auth.FirebaseAuth
 import com.mytutor.app.presentation.student.StudentProfileViewModel
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.ui.graphics.Color
-
+import com.mytutor.app.presentation.user.UserViewModel
+import com.mytutor.app.utils.FileUtils
+import kotlinx.coroutines.launch
 
 @Composable
 fun StudentProfileScreen(
-    viewModel: StudentProfileViewModel = hiltViewModel()
+    viewModel: StudentProfileViewModel = hiltViewModel(),
 ) {
     val uid = FirebaseAuth.getInstance().currentUser?.uid
     val user by viewModel.user.collectAsState()
@@ -39,6 +47,18 @@ fun StudentProfileScreen(
     var bio by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
+    var profileImageUri by remember { mutableStateOf<Uri?>(null) }
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            profileImageUri = it
+            uid?.let { id -> coroutineScope.launch { viewModel.uploadProfileImage(id, it, context) } }
+        }
+    }
 
     LaunchedEffect(uid) {
         uid?.let { viewModel.loadUser(it) }
@@ -84,16 +104,37 @@ fun StudentProfileScreen(
                                 .padding(horizontal = 16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Image(
-                                painter = rememberAsyncImagePainter(
-                                    model = u.profileImageUrl ?: "https://via.placeholder.com/150"
-                                ),
-                                contentDescription = "Profile Image",
-                                modifier = Modifier
-                                    .size(80.dp)
-                                    .clip(CircleShape)
-                                    .border(1.5.dp, MaterialTheme.colorScheme.onPrimary, CircleShape)
-                            )
+                            Box(modifier = Modifier.size(80.dp), contentAlignment = Alignment.BottomEnd) {
+                                Image(
+                                    painter = rememberAsyncImagePainter(
+                                        model = profileImageUri ?: u.profileImageUrl ?: "https://via.placeholder.com/150"
+                                    ),
+                                    contentDescription = "Profile Image",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .size(80.dp)
+                                        .clip(CircleShape)
+                                        .border(1.5.dp, MaterialTheme.colorScheme.onPrimary, CircleShape)
+                                )
+
+                                if (isEditing) {
+                                    IconButton(
+                                        onClick = { imagePickerLauncher.launch("image/*") },
+                                        modifier = Modifier
+                                            .size(24.dp)
+                                            .clip(CircleShape)
+                                            .background(MaterialTheme.colorScheme.secondary)
+                                            .border(1.dp, Color.White, CircleShape)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Edit,
+                                            contentDescription = "Edit",
+                                            tint = Color.White,
+                                            modifier = Modifier.size(14.dp)
+                                        )
+                                    }
+                                }
+                            }
 
                             Spacer(modifier = Modifier.width(16.dp))
 
@@ -132,7 +173,6 @@ fun StudentProfileScreen(
                     horizontalAlignment = Alignment.End
                 ) {
                     if (isEditing) {
-                        // Cancel button
                         FloatingActionButton(
                             onClick = {
                                 user?.let {
@@ -146,14 +186,10 @@ fun StudentProfileScreen(
                             contentColor = Color.White,
                             shape = CircleShape
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = "Cancel Edit"
-                            )
+                            Icon(imageVector = Icons.Default.Close, contentDescription = "Cancel Edit")
                         }
                     }
 
-                    // Edit / Save button
                     FloatingActionButton(
                         onClick = {
                             if (isEditing) {
@@ -211,12 +247,7 @@ fun EditableRow(
                 onValueChange = onValueChange,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .defaultMinSize(minHeight = if (isMultiline) 100.dp else 56.dp)
-                    .border(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-                        shape = RoundedCornerShape(6.dp)
-                    ),
+                    .defaultMinSize(minHeight = if (isMultiline) 100.dp else 56.dp),
                 singleLine = !isMultiline,
                 maxLines = if (isMultiline) 4 else 1,
                 shape = RoundedCornerShape(6.dp)

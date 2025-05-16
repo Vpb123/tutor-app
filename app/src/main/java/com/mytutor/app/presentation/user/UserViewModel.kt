@@ -82,34 +82,4 @@ class UserViewModel @Inject constructor(
         }
     }
 
-
-    fun uploadProfileImage(imageUri: Uri) {
-        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
-        val storageRef = Firebase.storage.reference.child("profile_images/$uid.jpg")
-        println("StorageRef: $storageRef")
-        viewModelScope.launch {
-            try {
-                println("Uploading image to Firebase Storage...")
-                val uploadTask = storageRef.putFile(imageUri).await()
-
-                println("Upload complete. Fetching download URL...")
-                val downloadUrl = storageRef.downloadUrl.await().toString()
-
-                println("Download URL: $downloadUrl")
-
-                val updatedUser = user.value?.copy(profileImageUrl = downloadUrl)
-                updatedUser?.let {
-                    firestore.collection("users").document(uid)
-                        .set(it, SetOptions.merge()).await()
-
-                    _user.value = it
-                    println("User document updated.")
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                println("Upload failed: ${e.message}")
-            }
-        }
-    }
-
 }
