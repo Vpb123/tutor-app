@@ -9,7 +9,7 @@ class QuizResultRepository {
     private val firestore = FirebaseService.firestore
     private val resultCollection = firestore.collection("quizResults")
 
-    // ✅ Save quiz result (from domain layer)
+
     suspend fun saveQuizResult(result: QuizResult): Result<Unit> {
         return try {
             resultCollection.document(result.id).set(result).await()
@@ -19,7 +19,7 @@ class QuizResultRepository {
         }
     }
 
-    // ✅ Fetch result for a specific student + quiz
+
     suspend fun getQuizResult(quizId: String, studentId: String): Result<QuizResult> {
         return try {
             val resultId = "$quizId-$studentId"
@@ -32,7 +32,6 @@ class QuizResultRepository {
         }
     }
 
-    // ✅ Get all results for tutor dashboard / analytics
     suspend fun getAllResultsForQuiz(quizId: String): Result<List<QuizResult>> {
         return try {
             val snapshot = resultCollection

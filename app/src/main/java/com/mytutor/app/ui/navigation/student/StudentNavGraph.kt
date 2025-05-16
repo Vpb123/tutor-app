@@ -54,12 +54,10 @@ fun NavGraphBuilder.studentNavGraph(
         MyCoursesScreen(navController, courseViewModel)
     }
     composable(StudentBottomNavItem.Profile.route) {
-//        StudentProfileScreen(navController)
         val uid = FirebaseAuth.getInstance().currentUser?.uid
         if (uid != null) {
             StudentProfileScreen()
         } else {
-            // Handle unauthenticated state
             Text("Not logged in")
         }
     }

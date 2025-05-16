@@ -14,8 +14,8 @@ class CanStudentAccessLessonUseCase {
 
         val targetIndex = sortedLessons.indexOfFirst { it.id == targetLesson.id }
 
-        if (targetIndex == -1) return false // Lesson not found
-        if (targetIndex == 0) return true   // First lesson is always available
+        if (targetIndex == -1) return false
+        if (targetIndex == 0) return true
 
         val previousLesson = sortedLessons.getOrNull(targetIndex - 1) ?: return false
         return completedLessonIds.contains(previousLesson.id)

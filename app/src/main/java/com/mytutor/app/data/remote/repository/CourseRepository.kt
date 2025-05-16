@@ -52,18 +52,6 @@ class CourseRepository {
         }
     }
 
-    suspend fun getCoursesBySubject(subject: CourseSubject): Result<List<Course>> {
-        return try {
-            val snapshot = coursesCollection
-                .whereEqualTo("subject", subject.name)
-                .get()
-                .await()
-            val courses = snapshot.toObjects(Course::class.java)
-            Result.success(courses)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
 
     suspend fun getCourseById(courseId: String): Result<Course> {
         return try {

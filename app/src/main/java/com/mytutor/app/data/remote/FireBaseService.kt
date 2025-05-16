@@ -14,10 +14,6 @@ object FirebaseService {
         FirebaseFirestore.getInstance()
     }
 
-    val storage: FirebaseStorage by lazy {
-        FirebaseStorage.getInstance()
-    }
-
     val currentUserId: String?
         get() = auth.currentUser?.uid
 

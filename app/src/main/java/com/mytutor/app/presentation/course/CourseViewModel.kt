@@ -17,21 +17,26 @@ import com.mytutor.app.data.remote.repository.ProgressRepository
 import com.mytutor.app.data.remote.repository.QuizResultRepository
 import com.mytutor.app.data.remote.repository.UserRepository
 import com.mytutor.app.domain.usecase.GetCourseCompletionStatusUseCase
+import com.mytutor.app.domain.usecase.GetCourseProgressUseCase
 import com.mytutor.app.presentation.dashboard.EnrolmentRequestUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 @HiltViewModel
 class CourseViewModel @Inject constructor(
-    private val courseRepository: CourseRepository,
-    private val enrolmentRepository: EnrolmentRepository,
-    private val userRepository: UserRepository,
-    private val lessonRepository: LessonRepository,
-    private val progressRepository: ProgressRepository,
-    private val quizResultRepository: QuizResultRepository
+    internal val courseRepository: CourseRepository,
+    internal val enrolmentRepository: EnrolmentRepository,
+    internal val userRepository: UserRepository,
+    internal val lessonRepository: LessonRepository,
+    internal val progressRepository: ProgressRepository,
+    private val quizResultRepository: QuizResultRepository,
+    private val getCourseProgressUseCase: GetCourseProgressUseCase
 ) : ViewModel(){
 
     private val _allCourses = MutableStateFlow<List<Course>>(emptyList())
@@ -287,5 +292,44 @@ class CourseViewModel @Inject constructor(
         }
     }
 
+    fun loadCourseProgress(courseId: String, onResult: (String, String, Int, Int, List<StudentProgressUiModel>) -> Unit) {
+        _loading.value = true
+        viewModelScope.launch {
+            val course = courseRepository.getCourseById(courseId).getOrNull()
+            val courseTitle = course?.title ?: "Course Progress"
+            val courseDescription = course?.description ?: ""
+
+            val lessons = lessonRepository.getLessonsByCourse(courseId).getOrNull().orEmpty()
+            val lessonCount = lessons.size
+
+            val enrolments = enrolmentRepository.getEnrolmentsByCourse(courseId).getOrNull()
+                ?.filter { it.status == EnrolmentStatus.ACCEPTED } ?: emptyList()
+
+            val enrolledCount = enrolments.size
+
+            val studentProgressList = enrolments.map { enrolment ->
+                async {
+                    val completedLessons = progressRepository
+                        .getCompletedLessons(courseId, enrolment.studentId)
+                        .getOrNull().orEmpty()
+
+                    val percent = getCourseProgressUseCase(lessons, completedLessons)
+
+                    val studentName = userRepository
+                        .getUserById(enrolment.studentId)
+                        .getOrNull()?.displayName ?: "Student"
+
+                    StudentProgressUiModel(studentName, percent)
+                }
+            }.awaitAll()
+
+            _loading.value = false
+            onResult(courseTitle, courseDescription, lessonCount, enrolledCount, studentProgressList)
+        }
+    }
 
 }
+data class StudentProgressUiModel(
+    val studentName: String,
+    val progressPercent: Float
+)

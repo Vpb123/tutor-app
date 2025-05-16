@@ -36,20 +36,6 @@ class ProgressRepository {
         }
     }
 
-    fun isLessonCompleted(
-        lessonId: String,
-        progressList: List<LessonProgress>
-    ): Boolean {
-        return progressList.any { it.lessonId == lessonId }
-    }
-
-    fun isCourseCompleted(
-        lessons: List<Lesson>,
-        progressList: List<LessonProgress>
-    ): Boolean {
-        return progressList.map { it.lessonId }.toSet().containsAll(lessons.map { it.id })
-    }
-
     fun getCourseProgressPercent(
         lessons: List<Lesson>,
         progressList: List<LessonProgress>

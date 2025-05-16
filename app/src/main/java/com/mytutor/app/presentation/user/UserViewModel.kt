@@ -11,7 +11,6 @@ import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.ktx.storage
 import com.mytutor.app.data.remote.FirebaseService.firestore
 import com.mytutor.app.data.remote.models.User
-import com.mytutor.app.data.remote.models.UserRole
 import com.mytutor.app.data.remote.repository.AuthRepository
 import com.mytutor.app.data.remote.repository.UserRepository
 import com.mytutor.app.utils.FileUtils
@@ -83,38 +82,6 @@ class UserViewModel @Inject constructor(
         }
     }
 
-
-    fun getUserRole(): UserRole? = _user.value?.role
-
-    fun deleteAccount(onSuccess: () -> Unit, onFailure: (String) -> Unit) {
-        val uid = _user.value?.uid ?: return
-        _isLoading.value = true
-
-        viewModelScope.launch {
-            try {
-                // Step 1: Delete user document from Firestore
-                val deleteResult = userRepository.deleteUser(uid)
-                if (deleteResult.isFailure) {
-                    _error.value = deleteResult.exceptionOrNull()?.message
-                    onFailure(_error.value ?: "Failed to delete user from Firestore")
-                    _isLoading.value = false
-                    return@launch
-                }
-
-                // Step 2: Delete auth account from FirebaseAuth
-                val firebaseUser = authRepository.getCurrentUser()
-                firebaseUser?.delete()?.await()
-
-                _user.value = null
-                _isLoading.value = false
-                onSuccess()
-            } catch (e: Exception) {
-                _error.value = e.message
-                _isLoading.value = false
-                onFailure(e.message ?: "Unknown error during deletion")
-            }
-        }
-    }
 
     fun uploadProfileImage(imageUri: Uri) {
         val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return

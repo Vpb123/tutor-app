@@ -22,6 +22,7 @@ import com.mytutor.app.data.remote.models.Course
 import com.mytutor.app.presentation.course.CourseViewModel
 import com.mytutor.app.presentation.lesson.LessonViewModel
 import com.mytutor.app.presentation.quiz.QuizViewModel
+import com.mytutor.app.ui.screens.tutor.CourseProgressScreen
 import com.mytutor.app.ui.screens.tutor.CreateOrEditCourseScreen
 import com.mytutor.app.ui.screens.tutor.LessonEditorScreen
 import com.mytutor.app.ui.screens.tutor.LessonListScreen
@@ -180,6 +181,10 @@ fun NavGraphBuilder.tutorNavGraph(navController: NavHostController, lessonViewMo
         )
     }
 
+    composable("course-progress/{courseId}") { backStackEntry ->
+        val courseId = backStackEntry.arguments?.getString("courseId") ?: return@composable
+        CourseProgressScreen(courseId = courseId, onBack = { navController.popBackStack() })
+    }
 
 
 
