@@ -21,9 +21,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.mytutor.app.data.remote.FirebaseService.currentUserId
 import com.mytutor.app.presentation.course.EnrolmentViewModel
 import com.mytutor.app.presentation.dashboard.DashboardViewModel
-import com.mytutor.app.presentation.user.UserViewModel
 import com.mytutor.app.ui.screens.tutor.components.CourseSummaryCard
 import com.mytutor.app.ui.screens.tutor.components.DashboardChart
 import com.mytutor.app.ui.screens.tutor.components.DashboardDonutChart
@@ -35,29 +35,16 @@ import com.mytutor.app.ui.screens.tutor.components.PendingRequestsSection
 fun TutorDashboardScreen(
     navController: NavController,
     dashboardViewModel: DashboardViewModel = hiltViewModel(),
-    userViewModel: UserViewModel = hiltViewModel(),
     enrolmentViewModel: EnrolmentViewModel = hiltViewModel()
 ) {
-    val user by userViewModel.user.collectAsState()
     val loading by dashboardViewModel.loading.collectAsState()
     val error by dashboardViewModel.error.collectAsState()
     val courseStats by dashboardViewModel.courseStats.collectAsState()
     val analytics by dashboardViewModel.dashboardData.collectAsState()
     val pendingRequests by dashboardViewModel.pendingRequests.collectAsState()
 
-    LaunchedEffect(Unit) {
-        userViewModel.loadCurrentUserProfile()
-    }
-
-    LaunchedEffect(user?.uid) {
-        user?.uid?.let { dashboardViewModel.loadDashboard(it) }
-        println("DashboardScreen: $analytics");
-    }
-    LaunchedEffect(analytics) {
-        println("📊 Analytics Updated:")
-        analytics.forEach {
-            println("Course: ${it.courseTitle}, Enrolled: ${it.enrolledCount}, Progress: ${it.averageProgress}")
-        }
+    LaunchedEffect(currentUserId) {
+        currentUserId?.let { dashboardViewModel.loadDashboard(it) }
     }
 
     Scaffold(
@@ -91,14 +78,19 @@ fun TutorDashboardScreen(
                                 enrolmentViewModel.acceptEnrolment(
                                     courseId = request.courseId,
                                     studentId = request.studentId
-                                )
+                                ) {
+                                    currentUserId?.let { dashboardViewModel.loadDashboard(it) }
+                                }
                             },
                             onReject = { request ->
                                 enrolmentViewModel.rejectEnrolment(
                                     courseId = request.courseId,
                                     studentId = request.studentId
-                                )
+                                ) {
+                                    currentUserId?.let { dashboardViewModel.loadDashboard(it) }
+                                }
                             }
+
                         )
                     }
                     item {

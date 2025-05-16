@@ -21,7 +21,6 @@ class GetCourseCompletionStatusUseCase(
         return when {
             completedLessonIds.isEmpty() -> CourseCompletionStatus.NOT_STARTED
 
-            // 👇 Inline course completion logic (replaces separate use case)
             !lessons.all { completedLessonIds.contains(it.id) } ->
                 CourseCompletionStatus.IN_PROGRESS
 

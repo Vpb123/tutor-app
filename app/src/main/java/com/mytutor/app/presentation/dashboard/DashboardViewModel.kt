@@ -42,17 +42,17 @@ class DashboardViewModel @Inject constructor(
             try {
                 val coursesResult = courseRepository.getCoursesByTutor(tutorId)
                 val courses = coursesResult.getOrNull().orEmpty()
-                println("📘 Courses Found: ${courses.size}")
+
                 val courseIds = courses.map { it.id }
 
-                val published = courses.size
-                val unpublished = 0
+                val published = courses.count { it.isPublished }
+                val unpublished = courses.count { !it.isPublished }
                 _courseStats.value = Pair(published, unpublished)
 
                 val analyticsResult = getTutorDashboardStatsUseCase(tutorId)
                 analyticsResult.onSuccess {
                     _dashboardData.value = it
-                    println(it);
+
                 }.onFailure {
                     _error.value = it.message
                 }

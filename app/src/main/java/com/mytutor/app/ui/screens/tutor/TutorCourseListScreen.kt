@@ -19,6 +19,8 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -104,93 +106,114 @@ fun TutorCourseListScreen(
             }
 
             courses.forEach { course ->
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                     ) {
-                        // Course Title
-                        Text(
-                            text = course.title,
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-
-                        // Course Description
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text(
-                            text = course.description,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-
-                        // Meta Info Section
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
                         ) {
-                            MetaItem(Icons.Default.MenuBook, "${viewModel.lessonCounts[course.id] ?: 0} Lessons")
-                            MetaItem(Icons.Default.Person, "${viewModel.studentCounts[course.id] ?: 0} Students")
-                            MetaItem(Icons.Default.Schedule, "${course.durationInHours} hrs")
-                        }
+                            // Course Title
+                            Text(
+                                text = course.title,
+                                style = MaterialTheme.typography.headlineSmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
 
-                        // Action Buttons Section
-                        Spacer(modifier = Modifier.height(20.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            OutlinedButton(
-                                onClick = { navController.navigate("createCourse/${course.id}") }
+                            // Course Description
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = course.description,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+
+                            // Meta Info Section
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(Icons.Default.Edit, contentDescription = null)
-                                Spacer(Modifier.width(6.dp))
-                                Text("Edit")
+                                MetaItem(
+                                    Icons.Default.MenuBook,
+                                    "${viewModel.lessonCounts[course.id] ?: 0} Lessons"
+                                )
+                                MetaItem(
+                                    Icons.Default.Person,
+                                    "${viewModel.studentCounts[course.id] ?: 0} Students"
+                                )
+                                MetaItem(Icons.Default.Schedule, "${course.durationInHours} hrs")
                             }
 
-                            OutlinedButton(
-                                onClick = {
-                                    user?.uid?.let { tutorId ->
-                                        viewModel.deleteCourse(course.id, tutorId)
-                                    }
-                                },
-                                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                            // Action Buttons Section
+                            Spacer(modifier = Modifier.height(20.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(Icons.Default.Delete, contentDescription = null)
-                                Spacer(Modifier.width(6.dp))
-                                Text("Delete")
-                            }
+                                OutlinedButton(
+                                    onClick = { navController.navigate("createCourse/${course.id}") }
+                                ) {
+                                    Icon(Icons.Default.Edit, contentDescription = null)
+                                    Spacer(Modifier.width(6.dp))
+                                    Text("Edit")
+                                }
 
-                            val isPublished = course.title.contains("Live")
-                            Button(
-                                onClick = {
-                                    val updated = course.copy(
-                                        title = if (isPublished) course.title.replace("Live", "") else "${course.title} Live"
+                                OutlinedButton(
+                                    onClick = {
+                                        user?.uid?.let { tutorId ->
+                                            viewModel.deleteCourse(course.id, tutorId)
+                                        }
+                                    },
+                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                                ) {
+                                    Icon(Icons.Default.Delete, contentDescription = null)
+                                    Spacer(Modifier.width(6.dp))
+                                    Text("Delete")
+                                }
+
+                                val isPublished = course.isPublished
+                                Button(
+                                    onClick = {
+                                        val updated = course.copy(isPublished = !isPublished)
+                                        viewModel.updateCourse(updated) {}
+                                    },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = if (isPublished) Color.Gray else MaterialTheme.colorScheme.primary
                                     )
-                                    viewModel.updateCourse(updated) {}
-                                },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = if (isPublished) Color.Gray else MaterialTheme.colorScheme.primary
-                                )
-                            ) {
-                                Icon(
-                                    imageVector = if (isPublished) Icons.Default.VisibilityOff else Icons.Default.Upload,
-                                    contentDescription = null
-                                )
-                                Spacer(Modifier.width(6.dp))
-                                Text(if (isPublished) "Unpublish" else "Publish")
+                                ) {
+                                    Icon(
+                                        imageVector = if (isPublished) Icons.Default.VisibilityOff else Icons.Default.Upload,
+                                        contentDescription = null
+                                    )
+                                    Spacer(Modifier.width(6.dp))
+                                    Text(if (isPublished) "Hide" else "Publish")
+                                }
+
                             }
+
+
                         }
+
                     }
-
-
+                    if (course.isPublished) {
+                        AssistChip(
+                            onClick = {},
+                            label = { Text("Published") },
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(8.dp),
+                            colors = AssistChipDefaults.assistChipColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                labelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        )
+                    }
                 }
 
             }

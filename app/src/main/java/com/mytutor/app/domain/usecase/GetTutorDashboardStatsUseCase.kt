@@ -27,7 +27,7 @@ class GetTutorDashboardStatsUseCase(
 
             val resultList = mutableListOf<CourseAnalytics>()
             val courses = coursesResult.getOrNull().orEmpty()
-            println("courses in use case $courses")
+
             for (course in courses) {
                 val quiz = quizRepository.getQuizByCourseId(course.id).getOrNull()
                 val quizId = quiz?.id
@@ -36,7 +36,7 @@ class GetTutorDashboardStatsUseCase(
                     .getOrNull()
                     ?.filter { it.status == EnrolmentStatus.ACCEPTED }
                     ?: emptyList()
-                println("enrolments in use case $enrolments")
+
                 val lessons = lessonRepository.getLessonsByCourse(course.id).getOrNull().orEmpty()
 
                 var totalProgress = 0f
@@ -59,7 +59,8 @@ class GetTutorDashboardStatsUseCase(
                             lessons = lessons,
                             progressList = progressList,
                             quizId = quizId,
-                            studentId = enrolment.studentId
+                            studentId = enrolment.studentId,
+                            passThreshold = quiz.passPercentage
                         )
                     } else null
 
@@ -67,7 +68,7 @@ class GetTutorDashboardStatsUseCase(
 
                     if (quizId != null) {
                         val result = quizResultRepository.getQuizResult(quizId, enrolment.studentId).getOrNull()
-                        if ((result?.score ?: 0) >= 50) passedQuizCount++
+                        if ((result?.score ?: 0) >= quiz.passPercentage) passedQuizCount++
                     }
 
                 }

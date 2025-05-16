@@ -1,5 +1,7 @@
 package com.mytutor.app.presentation.root
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -12,8 +14,9 @@ import com.mytutor.app.ui.navigation.student.StudentBottomNavBar
 import com.mytutor.app.ui.navigation.student.StudentBottomNavItem
 import com.mytutor.app.ui.navigation.student.StudentNavGraph
 
+@RequiresApi(Build.VERSION_CODES.P)
 @Composable
-fun StudentRootScreen() {
+fun StudentRootScreen(onLogout: () -> Unit) {
     val navController = rememberNavController()
     val navBackStackEntry = navController.currentBackStackEntryAsState().value
     val currentRoute = navBackStackEntry?.destination?.route
@@ -31,7 +34,7 @@ fun StudentRootScreen() {
             .fillMaxSize()
             .padding(innerPadding)
         ) {
-            StudentNavGraph(navController = navController)
+            StudentNavGraph(navController = navController, onLogout = onLogout)
         }
     }
 }

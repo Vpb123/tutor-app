@@ -37,6 +37,11 @@ class EnrolmentViewModel @Inject constructor(
                     _pendingEnrolments.value = _pendingEnrolments.value.filterNot {
                         it.courseId == courseId && it.studentId == studentId
                     }
+                    _acceptedEnrolments.value = _acceptedEnrolments.value + Enrolment(
+                        courseId = courseId,
+                        studentId = studentId,
+                        status = EnrolmentStatus.ACCEPTED
+                    )
                     onSuccess()
                 },
                 onFailure = { _error.value = it.message }

@@ -18,19 +18,21 @@ import com.mytutor.app.ui.screens.student.CourseViewScreen
 import com.mytutor.app.ui.screens.student.LessonPageViewScreen
 import com.mytutor.app.ui.screens.student.MyCoursesScreen
 import com.mytutor.app.ui.screens.student.StudentQuizScreen
+import com.mytutor.app.ui.screens.student.StudentSettingsScreen
 
 
 @RequiresApi(Build.VERSION_CODES.P)
 @Composable
 fun StudentNavGraph(
     navController: NavHostController,
-    startDestination: String = StudentBottomNavItem.AllCourses.route
+    onLogout: () -> Unit,
+    startDestination: String = StudentBottomNavItem.AllCourses.route,
 ) {
     val courseViewModel: CourseViewModel = hiltViewModel()
     val lessonViewModel: LessonViewModel = hiltViewModel()
 
     NavHost(navController = navController, startDestination = startDestination) {
-        studentNavGraph(navController, courseViewModel, lessonViewModel)
+        studentNavGraph(navController, courseViewModel, lessonViewModel, onLogout)
     }
 }
 
@@ -38,7 +40,8 @@ fun StudentNavGraph(
 fun NavGraphBuilder.studentNavGraph(
     navController: NavHostController,
     courseViewModel: CourseViewModel,
-    lessonViewModel: LessonViewModel
+    lessonViewModel: LessonViewModel,
+    onLogout: () -> Unit
 ) {
     composable(StudentBottomNavItem.AllCourses.route) {
         AllCoursesScreen(navController, courseViewModel)
@@ -50,7 +53,7 @@ fun NavGraphBuilder.studentNavGraph(
 //        StudentProfileScreen(navController)
     }
     composable(StudentBottomNavItem.Settings.route) {
-        StudentSettingsScreen(navController)
+        StudentSettingsScreen(navController, onLogout)
     }
 
     composable(

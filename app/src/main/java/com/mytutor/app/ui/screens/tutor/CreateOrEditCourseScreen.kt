@@ -207,7 +207,7 @@ fun CreateOrEditCourseScreen(
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Edit Lessons")
+                        Text("Edit Content")
                     }
                 }
 

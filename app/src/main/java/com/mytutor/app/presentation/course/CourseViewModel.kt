@@ -58,9 +58,9 @@ class CourseViewModel @Inject constructor(
             val result = courseRepository.getAllCourses()
             result.fold(
                 onSuccess = { courses ->
-                    _allCourses.value = courses
-
-                    courses.forEach { course ->
+                    val publishedCourses = courses.filter { it.isPublished }
+                    _allCourses.value = publishedCourses
+                    publishedCourses.forEach { course ->
 
                         if (!tutorNames.containsKey(course.tutorId)) {
                             viewModelScope.launch {
