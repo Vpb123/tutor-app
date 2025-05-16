@@ -94,7 +94,7 @@ fun CourseProgressScreen(
         }
     ) { padding ->
         Box(
-            modifier = Modifier
+            modifier = Modifier.padding(padding)
                 .padding(horizontal = 16.dp)
                 .fillMaxSize()
         ) {
