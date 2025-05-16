@@ -10,12 +10,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.mytutor.app.presentation.root.StudentRootScreen
 import com.mytutor.app.presentation.root.TutorRootScreen
+import com.mytutor.app.presentation.settings.SettingsViewModel
 import com.mytutor.app.ui.screens.SplashScreen
 import com.mytutor.app.ui.screens.auth.AuthScreen
 import com.mytutor.app.ui.theme.TutorAppTheme
