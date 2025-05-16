@@ -14,7 +14,10 @@ import com.mytutor.app.presentation.course.CourseViewModel
 import com.mytutor.app.presentation.lesson.LessonViewModel
 import com.mytutor.app.ui.screens.student.AllCoursesScreen
 import com.mytutor.app.ui.screens.student.MyCoursesScreen
-
+import com.mytutor.app.ui.screens.student.StudentProfileScreen
+import com.google.firebase.auth.FirebaseAuth
+import androidx.compose.material3.Text
+import com.mytutor.app.ui.screens.common.SettingsScreen
 
 @RequiresApi(Build.VERSION_CODES.P)
 @Composable
@@ -44,9 +47,16 @@ fun NavGraphBuilder.studentNavGraph(
     }
     composable(StudentBottomNavItem.Profile.route) {
 //        StudentProfileScreen(navController)
+        val uid = FirebaseAuth.getInstance().currentUser?.uid
+        if (uid != null) {
+            StudentProfileScreen()
+        } else {
+            // Handle unauthenticated state
+            Text("Not logged in")
+        }
     }
     composable(StudentBottomNavItem.Settings.route) {
-//        StudentSettingsScreen(navController)
+        SettingsScreen(navController = navController)
     }
 
 //    composable(
