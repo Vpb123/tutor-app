@@ -19,10 +19,11 @@ import com.mytutor.app.presentation.auth.AuthViewModel
 fun StudentSettingsScreen(
     navController: NavController,
     onLogout: () -> Unit,
+    isDarkTheme: Boolean,
+    onToggleTheme: (Boolean) -> Unit,
     authViewModel: AuthViewModel = hiltViewModel()
 ) {
     var notificationsEnabled by remember { mutableStateOf(true) }
-    var isDarkTheme by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -53,7 +54,7 @@ fun StudentSettingsScreen(
                 icon = Icons.Default.Brightness6,
                 label = "Dark Theme",
                 checked = isDarkTheme,
-                onCheckedChange = { isDarkTheme = it }
+                onCheckedChange = { onToggleTheme(it) }
             )
         }
 

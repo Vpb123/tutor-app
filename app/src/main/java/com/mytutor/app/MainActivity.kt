@@ -10,6 +10,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -29,12 +33,20 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            TutorAppTheme {
+            var isDarkTheme by rememberSaveable { mutableStateOf(false) }
+
+            TutorAppTheme(
+                darkTheme = isDarkTheme,
+                dynamicColor = false
+            ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AppNavigation()
+                    AppNavigation(
+                        isDarkTheme = isDarkTheme,
+                        onToggleTheme = { isDarkTheme = it }
+                    )
                 }
             }
         }
@@ -43,7 +55,10 @@ class MainActivity : ComponentActivity() {
 
 @RequiresApi(Build.VERSION_CODES.P)
 @Composable
-fun AppNavigation() {
+fun AppNavigation(
+    isDarkTheme: Boolean,
+    onToggleTheme: (Boolean) -> Unit
+) {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "splash") {
@@ -58,7 +73,10 @@ fun AppNavigation() {
                 navController.navigate("auth") {
                     popUpTo(0) { inclusive = true }
                 }
-            })
+            },
+                isDarkTheme = isDarkTheme,
+                onToggleTheme = onToggleTheme
+            )
         }
         composable("tutorDashboard") {
            TutorRootScreen(

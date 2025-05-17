@@ -16,7 +16,8 @@ import com.mytutor.app.ui.navigation.student.StudentNavGraph
 
 @RequiresApi(Build.VERSION_CODES.P)
 @Composable
-fun StudentRootScreen(onLogout: () -> Unit) {
+fun StudentRootScreen(onLogout: () -> Unit,    isDarkTheme: Boolean,
+                      onToggleTheme: (Boolean) -> Unit) {
     val navController = rememberNavController()
     val navBackStackEntry = navController.currentBackStackEntryAsState().value
     val currentRoute = navBackStackEntry?.destination?.route
@@ -34,7 +35,8 @@ fun StudentRootScreen(onLogout: () -> Unit) {
             .fillMaxSize()
             .padding(innerPadding)
         ) {
-            StudentNavGraph(navController = navController, onLogout = onLogout)
+            StudentNavGraph(navController = navController, onLogout = onLogout, isDarkTheme = isDarkTheme,
+                onToggleTheme = onToggleTheme)
         }
     }
 }

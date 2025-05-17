@@ -30,13 +30,15 @@ import com.mytutor.app.ui.screens.common.SettingsScreen
 fun StudentNavGraph(
     navController: NavHostController,
     onLogout: () -> Unit,
+    isDarkTheme: Boolean,
+    onToggleTheme: (Boolean) -> Unit,
     startDestination: String = StudentBottomNavItem.AllCourses.route,
 ) {
     val courseViewModel: CourseViewModel = hiltViewModel()
     val lessonViewModel: LessonViewModel = hiltViewModel()
 
     NavHost(navController = navController, startDestination = startDestination) {
-        studentNavGraph(navController, courseViewModel, lessonViewModel, onLogout)
+        studentNavGraph(navController, courseViewModel, lessonViewModel, onLogout, isDarkTheme, onToggleTheme)
     }
 }
 
@@ -45,7 +47,9 @@ fun NavGraphBuilder.studentNavGraph(
     navController: NavHostController,
     courseViewModel: CourseViewModel,
     lessonViewModel: LessonViewModel,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    isDarkTheme: Boolean,
+    onToggleTheme: (Boolean) -> Unit
 ) {
     composable(StudentBottomNavItem.AllCourses.route) {
         AllCoursesScreen(navController, courseViewModel)
@@ -62,7 +66,9 @@ fun NavGraphBuilder.studentNavGraph(
         }
     }
     composable(StudentBottomNavItem.Settings.route) {
-        StudentSettingsScreen(navController, onLogout)
+        StudentSettingsScreen(navController, onLogout,
+            isDarkTheme = isDarkTheme,
+            onToggleTheme = onToggleTheme)
     }
 
     composable(

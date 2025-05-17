@@ -237,7 +237,7 @@ fun HeroSection(searchQuery: String, onSearchChange: (String) -> Unit) {
     }
 
     val painter = rememberAsyncImagePainter(
-        model = "https://ik.imagekit.io/brsnwbh249/education-animate.svg?updatedAt=1747341543440",
+        model = "https://ik.imagekit.io/brsnwbh249/Education-bro.svg?updatedAt=1747444977303",
         imageLoader = imageLoader
     )
 
