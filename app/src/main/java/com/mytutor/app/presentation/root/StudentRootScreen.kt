@@ -36,7 +36,7 @@ fun StudentRootScreen(onLogout: () -> Unit,    isDarkTheme: Boolean,
             .padding(innerPadding)
         ) {
             StudentNavGraph(navController = navController, onLogout = onLogout, isDarkTheme = isDarkTheme,
-                onToggleTheme = onToggleTheme)
+                onToggleTheme = onToggleTheme, paddingValues = innerPadding)
         }
     }
 }

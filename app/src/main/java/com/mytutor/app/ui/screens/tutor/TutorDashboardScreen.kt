@@ -2,6 +2,8 @@ package com.mytutor.app.ui.screens.tutor
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -34,6 +36,7 @@ import com.mytutor.app.ui.screens.tutor.components.PendingRequestsSection
 @Composable
 fun TutorDashboardScreen(
     navController: NavController,
+    paddingValues: PaddingValues,
     dashboardViewModel: DashboardViewModel = hiltViewModel(),
     enrolmentViewModel: EnrolmentViewModel = hiltViewModel()
 ) {
@@ -47,13 +50,14 @@ fun TutorDashboardScreen(
         currentUserId?.let { dashboardViewModel.loadDashboard(it) }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("My Dashboard") }
-            )
-        }
-    ) {innerPadding ->
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        TopAppBar(
+            title = { Text("My Dashboard") }
+        )
+
         when {
             loading -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
@@ -65,8 +69,8 @@ fun TutorDashboardScreen(
 
             else -> {
                 LazyColumn(
-                    modifier = Modifier.heightIn(700.dp)
-                        .padding(16.dp).padding(innerPadding),
+                    modifier = Modifier
+                        .padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(24.dp)
                 ) {
                     item { CourseSummaryCard( publishedCount = courseStats.first,

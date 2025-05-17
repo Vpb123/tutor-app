@@ -3,6 +3,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -55,6 +56,7 @@ import com.mytutor.app.presentation.user.UserViewModel
 @Composable
 fun TutorCourseListScreen(
     navController: NavHostController,
+    paddingValues: PaddingValues,
     viewModel: CourseViewModel = hiltViewModel(),
     userViewModel: UserViewModel = hiltViewModel()
 ) {
@@ -77,21 +79,16 @@ fun TutorCourseListScreen(
     LaunchedEffect(user!!.uid) {
         viewModel.loadCoursesByTutor(user!!.uid)
     }
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("My Courses") }
-            )
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .padding(horizontal = 16.dp)
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
+    Column(
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        TopAppBar(
+            title = { Text("My Courses") }
+        )
             if (loading) {
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             }
@@ -239,7 +236,7 @@ fun TutorCourseListScreen(
 
             Spacer(modifier = Modifier.height(80.dp))
         }
-    }
+
 }
 
 @Composable

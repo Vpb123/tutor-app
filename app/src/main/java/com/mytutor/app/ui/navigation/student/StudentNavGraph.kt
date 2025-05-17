@@ -2,6 +2,7 @@ package com.mytutor.app.ui.navigation.student
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
@@ -32,13 +33,14 @@ fun StudentNavGraph(
     onLogout: () -> Unit,
     isDarkTheme: Boolean,
     onToggleTheme: (Boolean) -> Unit,
+    paddingValues: PaddingValues,
     startDestination: String = StudentBottomNavItem.AllCourses.route,
 ) {
     val courseViewModel: CourseViewModel = hiltViewModel()
     val lessonViewModel: LessonViewModel = hiltViewModel()
 
     NavHost(navController = navController, startDestination = startDestination) {
-        studentNavGraph(navController, courseViewModel, lessonViewModel, onLogout, isDarkTheme, onToggleTheme)
+        studentNavGraph(navController, courseViewModel, lessonViewModel, onLogout, isDarkTheme, onToggleTheme, paddingValues)
     }
 }
 
@@ -49,10 +51,11 @@ fun NavGraphBuilder.studentNavGraph(
     lessonViewModel: LessonViewModel,
     onLogout: () -> Unit,
     isDarkTheme: Boolean,
-    onToggleTheme: (Boolean) -> Unit
+    onToggleTheme: (Boolean) -> Unit,
+    paddingValues: PaddingValues
 ) {
     composable(StudentBottomNavItem.AllCourses.route) {
-        AllCoursesScreen(navController, courseViewModel)
+        AllCoursesScreen(navController,paddingValues, courseViewModel)
     }
     composable(StudentBottomNavItem.MyCourses.route) {
         MyCoursesScreen(navController, courseViewModel)

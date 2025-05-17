@@ -27,7 +27,7 @@ fun TutorRootScreen(onLogout: () -> Unit) {
         }
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-            TutorNavGraph(navController = navController, onLogout = onLogout)
+            TutorNavGraph(navController = navController, onLogout = onLogout, paddingValues=innerPadding)
         }
     }
 }

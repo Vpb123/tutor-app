@@ -74,6 +74,7 @@ import androidx.compose.material.icons.filled.Schedule
 @Composable
 fun AllCoursesScreen(
     navController: NavHostController,
+    paddingValues: PaddingValues,
     courseViewModel: CourseViewModel = hiltViewModel()
 ) {
     val allCourses by courseViewModel.allCourses.collectAsState()
@@ -147,7 +148,10 @@ fun AllCoursesScreen(
                 } else {
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(16.dp),
-                        modifier = Modifier.padding(horizontal = 16.dp)
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        contentPadding = PaddingValues(
+                            bottom = paddingValues.calculateBottomPadding()
+                        ),
                     ) {
                         items(filteredCourses) { course ->
                             ModernCourseCard(

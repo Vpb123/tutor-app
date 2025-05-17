@@ -1,6 +1,7 @@
 package com.mytutor.app.ui.navigation.tutor
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
@@ -35,19 +36,19 @@ import com.mytutor.app.ui.screens.tutor.TutorProfileScreen
 import com.mytutor.app.ui.screens.tutor.quiz.QuizQuestionEditorScreen
 
 @Composable
-fun TutorNavGraph(navController: NavHostController, startDestination: String = TutorBottomNavItem.Dashboard.route, onLogout: () -> Unit) {
+fun TutorNavGraph(navController: NavHostController, startDestination: String = TutorBottomNavItem.Dashboard.route, onLogout: () -> Unit, paddingValues: PaddingValues) {
     val lessonViewModel: LessonViewModel = hiltViewModel()
     NavHost(navController = navController, startDestination = startDestination) {
-        tutorNavGraph(navController, lessonViewModel, onLogout)
+        tutorNavGraph(navController, lessonViewModel, onLogout, paddingValues)
     }
 }
 
-fun NavGraphBuilder.tutorNavGraph(navController: NavHostController, lessonViewModel: LessonViewModel,  onLogout: () -> Unit) {
+fun NavGraphBuilder.tutorNavGraph(navController: NavHostController, lessonViewModel: LessonViewModel,  onLogout: () -> Unit, paddingValues: PaddingValues) {
     composable(TutorBottomNavItem.Dashboard.route) {
-        TutorDashboardScreen(navController)
+        TutorDashboardScreen(navController, paddingValues)
     }
     composable(TutorBottomNavItem.Courses.route) {
-        TutorCourseListScreen(navController)
+        TutorCourseListScreen(navController, paddingValues)
     }
 
     composable(TutorBottomNavItem.Create.route) {
