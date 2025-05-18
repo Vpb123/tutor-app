@@ -69,7 +69,7 @@ fun LessonPageBuilderScreen(
     var textInput by remember { mutableStateOf(TextFieldValue("")) }
     var showAddedIcon by remember { mutableStateOf(false) }
     var contentBlocks by remember { mutableStateOf<MutableList<ContentBlockData>>(mutableListOf()) }
-    val isTextBlockAdded = contentBlocks.any { it.type == "text" }
+    var isTextBlockAdded by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     var embeddedMaterials by remember {
         mutableStateOf<MutableList<LearningMaterial>>(existingPage?.embeddedMaterials?.toMutableList() ?: mutableListOf())
@@ -83,6 +83,8 @@ fun LessonPageBuilderScreen(
         imageUris = existingBlocks
             .filter { it.type == "image" && !it.imageUrl.isNullOrBlank() }
             .mapNotNull { it.imageUrl?.toUri() }
+        isTextBlockAdded = false
+        showAddedIcon = false
     }
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
         if (uris.isNotEmpty()) {
@@ -168,8 +170,6 @@ fun LessonPageBuilderScreen(
                         value = textInput,
                         onValueChange = {
                             textInput = it
-                            if (!isTextBlockAdded) textInput = it
-                            showAddedIcon = false
                         },
                         enabled = !isTextBlockAdded,
                         placeholder = { Text("Write multiple paragraphs here...\nUse Enter to separate them.") },
@@ -184,16 +184,13 @@ fun LessonPageBuilderScreen(
                             val updatedBlocks = contentBlocks.toMutableList()
                             val existingIndex = updatedBlocks.indexOfFirst { it.type == "text" }
                             if (existingIndex >= 0) {
-                                updatedBlocks[existingIndex] =
-                                    ContentBlockData(type = "text", text = newText)
+                                updatedBlocks[existingIndex] = ContentBlockData(type = "text", text = newText)
                             } else {
-                                updatedBlocks.add(
-                                    0,
-                                    ContentBlockData(type = "text", text = newText)
-                                )
+                                updatedBlocks.add(0, ContentBlockData(type = "text", text = newText))
                             }
                             contentBlocks = updatedBlocks
                             showAddedIcon = true
+                            isTextBlockAdded = true
                         }
                     }) {
                         if (showAddedIcon) {

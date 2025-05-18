@@ -171,5 +171,9 @@ class LessonViewModel @Inject constructor(
         }
     }
 
+    fun clearSelectedLesson() {
+        _selectedLesson.value = null
+    }
+
 
 }

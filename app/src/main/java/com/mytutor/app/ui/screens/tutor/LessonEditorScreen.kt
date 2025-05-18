@@ -111,13 +111,40 @@ fun LessonEditorScreen(
 
                 Button(
                     onClick = {
-                        val newLesson = viewModel.selectedLesson.value?.copy(
-                            title = title.text.trim(),
-                            courseId = courseId
-                        ) ?: return@Button
+                        if (title.text.isBlank()) {
+                            error = "Enter lesson title"
+                            return@Button
+                        }
 
-                        viewModel.updateLesson(newLesson) {
-                            navController.navigate("lessonEditor/$courseId")
+                        val existing = viewModel.selectedLesson.value
+                        loading = true
+                        if (existing == null) {
+                            // Case 1: First time creating a new lesson
+                            viewModel.createEmptyLesson(title.text.trim(), courseId) {
+                                viewModel.clearSelectedLesson()
+                                title = TextFieldValue("")
+                                loading = false
+
+                                // Stay on the same screen, reset state
+                                navController.navigate("lessonEditor/$courseId") {
+                                    popUpTo("lessonEditor/$courseId") { inclusive = true }
+                                }
+                            }
+                        } else {
+                            // Case 2: Already created, just update
+                            val updatedLesson = existing.copy(
+                                title = title.text.trim(),
+                                courseId = courseId
+                            )
+                            viewModel.updateLesson(updatedLesson) {
+                                viewModel.clearSelectedLesson()
+                                title = TextFieldValue("")
+                                loading = false
+
+                                navController.navigate("lessonEditor/$courseId") {
+                                    popUpTo("lessonEditor/$courseId") { inclusive = true }
+                                }
+                            }
                         }
                     },
                     modifier = Modifier
