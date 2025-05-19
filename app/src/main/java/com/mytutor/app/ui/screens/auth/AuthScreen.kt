@@ -17,7 +17,7 @@ fun AuthScreen(navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp)
+            .padding(vertical = 64.dp, horizontal = 24.dp)
     ) {
         TabRow(
             selectedTabIndex = selectedTab,
