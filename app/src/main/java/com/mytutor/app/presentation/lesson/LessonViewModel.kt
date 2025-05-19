@@ -15,9 +15,11 @@ import com.mytutor.app.domain.usecase.ComputeLessonStatusUseCase
 import com.mytutor.app.utils.FileUtils
 import com.mytutor.app.utils.imageupload.ImageUploader
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.UUID
 import javax.inject.Inject
 
@@ -100,13 +102,16 @@ class LessonViewModel @Inject constructor(
 
     fun selectLesson(lessonId: String) {
         viewModelScope.launch {
-            val result = lessonRepository.getLessonById(lessonId)
+            val result = withContext(Dispatchers.IO) {
+                lessonRepository.getLessonById(lessonId)
+            }
             result.fold(
                 onSuccess = { _selectedLesson.value = it },
                 onFailure = { _error.value = it.message }
             )
         }
     }
+
 
     fun updateLesson(lesson: Lesson, onSuccess: () -> Unit) {
         viewModelScope.launch {
@@ -120,15 +125,6 @@ class LessonViewModel @Inject constructor(
         }
     }
 
-    fun createLesson(lesson: Lesson, onSuccess: () -> Unit) {
-        viewModelScope.launch {
-            val result = lessonRepository.createLesson(lesson)
-            result.fold(
-                onSuccess = { onSuccess() },
-                onFailure = { _error.value = it.message }
-            )
-        }
-    }
 
     fun uploadFile(context: Context, uri: Uri, onResult: (Result<String>) -> Unit) {
         viewModelScope.launch {

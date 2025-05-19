@@ -69,8 +69,7 @@ fun TutorDashboardScreen(
 
             else -> {
                 LazyColumn(
-                    modifier = Modifier
-                        .padding(16.dp).padding(horizontal = 12.dp),
+                    modifier = Modifier.padding(vertical = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(24.dp)
                 ) {
                     item { CourseSummaryCard( publishedCount = courseStats.first,

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -63,13 +64,18 @@ fun NavGraphBuilder.tutorNavGraph(navController: NavHostController, lessonViewMo
     }
 
     composable(
-        route = "lessonEditor/{courseId}",
+        route = "lessonEditor/{courseId}?fromCreateCourse={fromCreateCourse}",
         arguments = listOf(
-            navArgument("courseId") { type = NavType.StringType }
+            navArgument("courseId") { type = NavType.StringType },
+            navArgument("fromCreateCourse") {
+                type = NavType.BoolType
+                defaultValue = false
+            }
         )
     ) { backStackEntry ->
         val courseId = backStackEntry.arguments?.getString("courseId")!!
-        LessonEditorScreen(courseId = courseId, navController = navController, lessonId = null, viewModel = lessonViewModel)
+        val fromCreateCourse = backStackEntry.arguments?.getBoolean("fromCreateCourse") ?: false
+        LessonEditorScreen(courseId = courseId, navController = navController, lessonId = null, viewModel = lessonViewModel, fromCreateCourse = fromCreateCourse)
     }
 
     composable(
@@ -120,8 +126,11 @@ fun NavGraphBuilder.tutorNavGraph(navController: NavHostController, lessonViewMo
         )
     ) { backStackEntry ->
         val pageIndex = backStackEntry.arguments?.getInt("pageIndex") ?: 0
-        val existingPage = remember(lessonViewModel.selectedLesson, pageIndex) {
-            lessonViewModel.selectedLesson.value?.pages?.getOrNull(pageIndex)
+
+        val selectedLesson = lessonViewModel.selectedLesson.collectAsState().value
+
+        val existingPage = remember(selectedLesson?.id, pageIndex) {
+            selectedLesson?.pages?.getOrNull(pageIndex)
         }
 
         LessonPageBuilderScreen(
@@ -131,7 +140,6 @@ fun NavGraphBuilder.tutorNavGraph(navController: NavHostController, lessonViewMo
             viewModel = lessonViewModel,
             onSave = { page, goToNext ->
                 val lesson = lessonViewModel.selectedLesson.value
-                println("selectedLesson: $lesson")
                 if (lesson != null) {
                     val updatedPages = lesson.pages.toMutableList()
                     if (pageIndex < updatedPages.size) {
@@ -140,18 +148,22 @@ fun NavGraphBuilder.tutorNavGraph(navController: NavHostController, lessonViewMo
                         updatedPages.add(page)
                     }
 
-                    lessonViewModel.updateLesson(lesson.copy(pages = updatedPages)) {
+                    val updatedLesson = lesson.copy(pages = updatedPages)
+                    lessonViewModel.updateLesson(updatedLesson) {
+
+                        lessonViewModel.selectLesson(updatedLesson.id)
+
                         if (goToNext) {
                             navController.navigate("editPageBuilder/${updatedPages.size}")
                         } else {
                             navController.popBackStack()
                         }
                     }
-
                 }
             }
         )
     }
+
 
     composable(
         route = "quizCreator/{courseId}",

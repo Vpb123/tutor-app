@@ -46,7 +46,4 @@ class AuthViewModel @Inject constructor(
         _authState.value = AuthState.Idle
     }
 
-    fun getCurrentUser(): FirebaseUser? {
-        return authRepository.getCurrentUser()
-    }
 }

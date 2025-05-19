@@ -36,6 +36,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.mytutor.app.presentation.lesson.LessonViewModel
+import com.mytutor.app.ui.navigation.tutor.TutorBottomNavItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,7 +44,8 @@ fun LessonEditorScreen(
     courseId: String,
     navController: NavHostController,
     lessonId: String? = null,
-    viewModel: LessonViewModel
+    viewModel: LessonViewModel,
+    fromCreateCourse: Boolean = false
 ) {
     val context = LocalContext.current
     val existingLesson by viewModel.selectedLesson.collectAsState()
@@ -88,13 +90,36 @@ fun LessonEditorScreen(
             ) {
                 Button(
                     onClick = {
-                        val newLesson = viewModel.selectedLesson.value?.copy(
-                            title = title.text.trim(),
-                            courseId = courseId
-                        ) ?: return@Button
+                        val existing = viewModel.selectedLesson.value
 
-                        viewModel.updateLesson(newLesson) {
-                            navController.popBackStack()
+                        if (existing == null) {
+                            loading = true
+                            viewModel.createEmptyLesson(title.text.trim(), courseId) {
+                                loading = false
+                                if (fromCreateCourse) {
+                                    navController.navigate("createCourse/$courseId") {
+                                        popUpTo("lessonEditor/$courseId") { inclusive = true }
+                                    }
+                                } else {
+                                    navController.navigate("lessonList/$courseId") {
+                                        popUpTo("lessonEditor/$courseId") { inclusive = true }
+                                    }
+                                }
+                            }
+                        } else {
+                            val updatedLesson = existing.copy(
+                                title = title.text.trim(),
+                                courseId = courseId
+                            )
+                            loading = true
+                            viewModel.updateLesson(updatedLesson) {
+                                loading = false
+
+                                    navController.navigate("lessonList/$courseId") {
+                                        popUpTo("lessonEditor/$courseId") { inclusive = true }
+
+                                }
+                            }
                         }
                     },
                     modifier = Modifier
@@ -119,19 +144,19 @@ fun LessonEditorScreen(
                         val existing = viewModel.selectedLesson.value
                         loading = true
                         if (existing == null) {
-                            // Case 1: First time creating a new lesson
+
                             viewModel.createEmptyLesson(title.text.trim(), courseId) {
                                 viewModel.clearSelectedLesson()
                                 title = TextFieldValue("")
                                 loading = false
 
-                                // Stay on the same screen, reset state
-                                navController.navigate("lessonEditor/$courseId") {
+
+                                navController.navigate("lessonEditor/$courseId?fromCreateCourse=$fromCreateCourse") {
                                     popUpTo("lessonEditor/$courseId") { inclusive = true }
                                 }
                             }
                         } else {
-                            // Case 2: Already created, just update
+
                             val updatedLesson = existing.copy(
                                 title = title.text.trim(),
                                 courseId = courseId
@@ -141,7 +166,7 @@ fun LessonEditorScreen(
                                 title = TextFieldValue("")
                                 loading = false
 
-                                navController.navigate("lessonEditor/$courseId") {
+                                navController.navigate("lessonEditor/$courseId?fromCreateCourse=$fromCreateCourse") {
                                     popUpTo("lessonEditor/$courseId") { inclusive = true }
                                 }
                             }
@@ -213,4 +238,5 @@ fun LessonEditorScreen(
         }
     }
 }
+
 

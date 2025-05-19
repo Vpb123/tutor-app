@@ -187,7 +187,7 @@ fun CreateOrEditCourseScreen(
                         if (existingCourse == null) {
                             viewModel.createCourse(course) { courseId ->
                                 println("Available destinations: ${navController.graph}")
-                                navController.navigate("lessonEditor/$courseId/null")
+                                navController.navigate("lessonEditor/$courseId?fromCreateCourse=true")
                             }
                         } else {
                             viewModel.updateCourse(course) {

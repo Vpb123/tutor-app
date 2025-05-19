@@ -1,6 +1,8 @@
 package com.mytutor.app.ui.screens.student
 
 import android.content.Intent
+import android.net.Uri
+import android.widget.MediaController
 import android.widget.VideoView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -51,12 +53,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.net.toUri
+import androidx.media3.common.MediaItem
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.PlayerView
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.mytutor.app.data.remote.models.Lesson
 import com.mytutor.app.data.remote.models.LessonProgress
 import com.mytutor.app.data.remote.repository.LessonRepository
 import com.mytutor.app.data.remote.repository.ProgressRepository
+import com.mytutor.app.ui.components.VideoPlayer
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -302,20 +308,8 @@ fun LessonPageViewScreen(
                                 }
                             }
 
-                            "VIDEO" -> AndroidView(
-                                factory = {
-                                    VideoView(it).apply {
-                                        setVideoURI(material.content.toUri())
-                                        setOnPreparedListener { mediaPlayer ->
-                                            mediaPlayer.setOnVideoSizeChangedListener { _, _, _ ->
-                                                start()
-                                            }
-                                        }
-                                    }
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(200.dp)
+                            "VIDEO" -> VideoPlayer(
+                                videoUrl = material.content
                             )
                         }
                     }
